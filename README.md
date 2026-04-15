@@ -1,4 +1,8 @@
-# Meta Lead Ads to inConcert Middleware
+# UEES Insights Middleware
+
+## Purpose
+
+Middleware for Make.com insights ingestion plus CRM matching for dashboard analytics.
 
 ## Setup
 
@@ -8,9 +12,10 @@
 
 ## Webhook Endpoints
 
-- `GET /webhooks/meta` for Meta verification.
-- `POST /webhooks/meta` for lead events.
+- `POST /ingest/insights` for Make.com insights.
 - `GET /health` for health checks.
+
+For WordPress thank-you page events, you can also post to `POST /ingest/insights` and include `skip_crm_match: true` so the middleware stores only anonymous page/form metadata.
 
 ## Database
 
@@ -21,57 +26,243 @@ The matcher expects a `contacts` table with at least these columns:
 - `email`
 - `phone`
 
-## Docker
+## Make.com payload
 
-Build the image with:
+Send `POST` requests to `/ingest/insights`.
 
-```bash
-docker build -t dashboard-flow .
+Recommended headers:
+
+- `Content-Type: application/json`
+- `X-Webhook-Token: TU_TOKEN` or `Authorization: Bearer TU_TOKEN`
+
+Example payload with one row:
+
+```json
+{
+	"rows": [
+		{
+			"campaign_name": "GradoOnline",
+			"adset_name": "Ecuador - Prospecting",
+			"country": "Ecuador",
+			"date_start": "2026-03-01",
+			"date_stop": "2026-03-31",
+			"spend": 75,
+			"clicks": 24,
+			"cpc": 3.12,
+			"impressions": 1540,
+			"reach": 1200,
+			"conversions": 3,
+			"campaign_id": "1202...",
+			"adset_id": "1203...",
+			"account_id": "act_123456789"
+		}
+	]
+}
 ```
 
-Run it with:
+You can also send a single object instead of `rows`, and the API will wrap it automatically.
 
-```bash
-docker run -p 3000:3000 --env-file .env dashboard-flow
-```
+Required field in each row:
 
-## Docker Compose (API + PostgreSQL)
-
-Use this when you want the API and database in separate containers:
-
-```bash
-docker compose up -d --build
-```
-
-The compose file creates:
-
-- `dashboard-flow-api`
-- `dashboard-flow-postgres`
-
-The initial table is created from `docker/postgres/init/001_contacts.sql` on first boot.
-
-## Environment Settings (Dockploy)
-
-Set these in Dockploy:
-
-- `META_VERIFY_TOKEN`
-- `META_APP_SECRET`
-- `META_ACCESS_TOKEN`
-- `INCONCERT_BASE_URL`
-- `INCONCERT_ENDPOINT` (example: `/api/leads`)
-- `INCONCERT_TOKEN` (if applies)
-- `INCONCERT_API_KEY` (if applies)
-- `POSTGRES_DB` (example: `dashboard_flow`)
-- `POSTGRES_USER` (example: `dashboard_flow`)
-- `POSTGRES_PASSWORD` (strong password)
+- `campaign_name`
 
 Optional but recommended:
 
-- `LOG_LEVEL=info`
-- `REQUEST_TIMEOUT_MS=10000`
-- `DATABASE_POOL_MAX=10`
+- `campaign_id`
+- `adset_name`
+- `adset_id`
+- `country`
+- `date_start`
+- `date_stop`
+- `spend`
+- `clicks`
+- `cpc`
+- `impressions`
+- `reach`
+- `conversions`
 
-Notes:
+If you configure `MAKE_WEBHOOK_TOKEN`, the endpoint will require one of these headers:
 
-- Do not set `DATABASE_URL` manually in Dockploy when using `docker-compose.yml`; it is constructed internally to point to the `postgres` service.
-- The Dockerfile cannot create a second container. For API + DB, use `docker-compose.yml`.
+- `X-Webhook-Token`
+- `X-Make-Token`
+- `Authorization: Bearer ...`
+
+## WordPress PHP snippet
+
+Use this in a small plugin, Code Snippets, or your theme `functions.php`. It fires on a thank-you page and sends only anonymous metadata.
+
+```php
+<?php
+
+add_action('template_redirect', function () {
+	if (is_admin() || wp_doing_ajax()) {
+		return;
+	}
+
+	$thank_you_pages = array('gracias', 'thank-you');
+
+	if (!is_page($thank_you_pages)) {
+		return;
+	}
+
+	$endpoint = 'https://webservices.devmaniacs.net/ingest/insights';
+	$token = 'TU_MAKE_WEBHOOK_TOKEN';
+
+	$current_url = home_url(add_query_arg(array(), $GLOBALS['wp']->request));
+	$referrer = isset($_SERVER['HTTP_REFERER']) ? esc_url_raw(wp_unslash($_SERVER['HTTP_REFERER'])) : '';
+
+	$utm_keys = array('utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term');
+	$utm = array();
+
+	foreach ($utm_keys as $key) {
+		$utm[$key] = isset($_GET[$key]) ? sanitize_text_field(wp_unslash($_GET[$key])) : '';
+	}
+
+	$payload = array(
+		'campaign_name' => get_the_title(),
+		'event_type' => 'wordpress_thank_you',
+		'source' => 'wordpress',
+		'skip_crm_match' => true,
+		'form_name' => 'wordpress-thank-you',
+		'page_url' => $current_url,
+		'thank_you_url' => $current_url,
+		'referrer' => $referrer,
+		'title' => wp_get_document_title(),
+		'timestamp' => gmdate('c'),
+	) + $utm;
+
+	wp_remote_post($endpoint, array(
+		'timeout' => 10,
+		'headers' => array(
+			'Content-Type' => 'application/json',
+			'X-Webhook-Token' => $token,
+		),
+		'body' => wp_json_encode($payload),
+	));
+});
+```
+
+Change these values before using it:
+
+- `TU_MAKE_WEBHOOK_TOKEN` to your shared webhook token
+- `gracias` and `thank-you` to the actual thank-you page slugs
+
+Recommended payload fields for WordPress events:
+
+- `campaign_name` as the page or form label
+- `event_type` = `wordpress_thank_you`
+- `source` = `wordpress`
+- `skip_crm_match` = `true`
+- `page_url`, `referrer`, and UTM fields
+
+## Prisma Studio
+
+Use Prisma Studio to inspect the database visually:
+
+```bash
+npm run prisma:generate
+npm run prisma:studio
+```
+
+Studio opens on port `5555` by default. You can change it with `PRISMA_STUDIO_PORT`.
+
+## Embeddable Widgets (Phase 3)
+
+This project now exposes a reusable widget script so external sites can load forms without copying HTML/CSS/JS blocks.
+
+Script endpoint:
+
+```html
+<script src="https://webservices.devmaniacs.net/widgets/lead.js"></script>
+```
+
+The widget injects the form into the DOM right after the script tag, captures UTM parameters from the current page URL, and submits to:
+
+- `POST /widgets/lead/submit`
+
+Default variant (full form):
+
+```html
+<script
+	src="https://webservices.devmaniacs.net/widgets/lead.js"
+	data-programa="Derecho de Empresa"
+	data-title="Formulario de admision"
+></script>
+```
+
+WhatsApp variant:
+
+```html
+<script
+	src="https://webservices.devmaniacs.net/widgets/lead.js"
+	data-variant="wa"
+	data-programa="Derecho de Empresa"
+	data-whatsapp="593980068660"
+></script>
+```
+
+Supported `data-*` attributes:
+
+- `data-variant`: `full` (default) or `wa`
+- `data-programa`: value sent as `programa` and fallback `campaign_name`
+- `data-title`: widget heading text
+- `data-source`: custom source label in payload
+- `data-submit-url`: override submission endpoint (optional)
+- `data-base-url`: base URL for default `data-submit-url` resolution
+- `data-whatsapp`: destination number for the `wa` variant
+- `data-success-message`: custom success text
+
+## PM2
+
+Start with PM2:
+
+```bash
+npx -y pm2 start ecosystem.config.js --only dashboard-flow --update-env
+```
+
+Useful commands:
+
+```bash
+npx -y pm2 ls
+npx -y pm2 logs dashboard-flow --lines 100
+npx -y pm2 restart dashboard-flow --update-env
+```
+
+## NGINX
+
+Create this file in the server (outside this project):
+
+- `/etc/nginx/sites-available/webservices.devmaniacs.net`
+
+```nginx
+server {
+	listen 80;
+	listen [::]:80;
+	server_name webservices.devmaniacs.net;
+
+	client_max_body_size 10m;
+
+	location /.well-known/acme-challenge/ {
+		root /var/www/html;
+	}
+
+	location / {
+		proxy_pass http://127.0.0.1:4000;
+		proxy_http_version 1.1;
+		proxy_set_header Host $host;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header X-Forwarded-Proto $scheme;
+		proxy_set_header X-Forwarded-Host $host;
+		proxy_set_header X-Forwarded-Port $server_port;
+	}
+}
+```
+
+Enable and reload:
+
+```bash
+sudo ln -s /etc/nginx/sites-available/webservices.devmaniacs.net /etc/nginx/sites-enabled/webservices.devmaniacs.net
+sudo nginx -t
+sudo systemctl reload nginx
+```

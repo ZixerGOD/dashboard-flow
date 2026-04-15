@@ -1,0 +1,315 @@
+<div id="wa-mini-root">
+  <button id="wa-open-btn" type="button" aria-label="Abrir formulario WhatsApp">
+    <span id="wa-icon">💬</span>
+    <span>Escríbenos por WhatsApp</span>
+  </button>
+
+  <div id="wa-mini-card" style="display:none;">
+    <form id="wa-mini-form">
+      <h4>Déjanos tus datos</h4>
+
+      <input type="text" name="nombre" placeholder="Nombre" required />
+      <input type="text" name="apellido" placeholder="Apellido" required />
+      <input type="text" name="cedula" placeholder="Cédula" required />
+      <input type="email" name="correo" placeholder="Correo" required />
+      <input type="tel" name="telefono" placeholder="Teléfono" required />
+
+      <input type="hidden" name="modalidad" value="online" />
+      <input type="hidden" name="nivel" value="grado" />
+      <input type="hidden" name="programa" value="TU_PROGRAMA_AQUI" />
+
+      <div class="wa-actions">
+        <button type="button" id="wa-close-btn">Cerrar</button>
+        <button type="submit" id="wa-send-btn">Enviar por WhatsApp</button>
+      </div>
+    </form>
+
+    <div id="wa-success-msg" style="display:none; text-align:center; padding:20px; color:#10B981;">
+      <strong>¡Gracias!</strong>
+      <p>En breve nos contactaremos contigo</p>
+    </div>
+  </div>
+</div>
+
+<style>
+  #wa-mini-root {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 99999;
+    font-family: Arial, sans-serif;
+  }
+
+  #wa-open-btn {
+    border: 0;
+    border-radius: 999px;
+    padding: 12px 16px;
+    background: #25D366;
+    color: #fff;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    box-shadow: 0 10px 24px rgba(0,0,0,.2);
+  }
+
+  #wa-open-btn:hover {
+    opacity: .95;
+  }
+
+  #wa-icon {
+    font-size: 18px;
+    line-height: 1;
+  }
+
+  #wa-mini-card {
+    width: min(340px, 92vw);
+    margin-top: 10px;
+    border-radius: 14px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 16px 40px rgba(0,0,0,.2);
+    padding: 14px;
+  }
+
+  #wa-mini-form h4 {
+    margin: 2px 0 12px;
+    font-size: 18px;
+  }
+
+  #wa-mini-form input {
+    width: 100%;
+    margin: 0 0 10px;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    font-size: 14px;
+    box-sizing: border-box;
+  }
+
+  .wa-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .wa-actions button {
+    flex: 1;
+    border: 0;
+    border-radius: 10px;
+    padding: 10px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  #wa-close-btn {
+    background: #111;
+    color: #fff;
+  }
+
+  #wa-send-btn {
+    background: #25D366;
+    color: #fff;
+  }
+
+  #wa-success-msg {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+</style>
+
+<script>
+(function () {
+  var phone = "593980068660";
+  var storageKey = "dashboard_utm_params";
+  var utmExpiry = 120 * 60 * 1000;
+
+  var root = document.getElementById("wa-mini-root");
+  var openBtn = document.getElementById("wa-open-btn");
+  var closeBtn = document.getElementById("wa-close-btn");
+  var card = document.getElementById("wa-mini-card");
+  var form = document.getElementById("wa-mini-form");
+  var successMsg = document.getElementById("wa-success-msg");
+
+  function getStoredUTM() {
+    try {
+      var stored = localStorage.getItem(storageKey);
+      if (!stored) return null;
+      var parsed = JSON.parse(stored);
+      if (parsed.expiry < Date.now()) {
+        localStorage.removeItem(storageKey);
+        return null;
+      }
+      return parsed.utm;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function storeUTM(utm) {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify({
+        utm: utm,
+        expiry: Date.now() + utmExpiry
+      }));
+    } catch (e) {
+      console.error("Failed to store UTM:", e);
+    }
+  }
+
+  function getParameterByName(name, url) {
+    url = url || window.location.href;
+    var urlObj = new URL(url);
+    return urlObj.searchParams.get(name);
+  }
+
+  function captureUTMFromPageLoad() {
+    var utmParams = {
+      utm_source: getParameterByName("utm_source") || "",
+      utm_medium: getParameterByName("utm_medium") || "",
+      utm_campaign: getParameterByName("utm_campaign") || "",
+      utm_content: getParameterByName("utm_content") || "",
+      utm_term: getParameterByName("utm_term") || ""
+    };
+
+    var hasUtm = Object.values(utmParams).some(function(v) { return v; });
+    if (hasUtm) {
+      storeUTM(utmParams);
+    }
+  }
+
+  function getUTMForSubmission() {
+    var stored = getStoredUTM();
+    if (stored && Object.values(stored).some(function(v) { return v; })) {
+      return stored;
+    }
+    return {
+      utm_source: "whatsapp",
+      utm_medium: "contact_form",
+      utm_campaign: "miniform_whatsapp",
+      utm_content: "",
+      utm_term: ""
+    };
+  }
+
+  function sanitizePhone(phone) {
+    return String(phone || "").replace(/\D/g, "").slice(-10);
+  }
+
+  async function saveLead(formData, utm) {
+    try {
+      var payload = {
+        campaign_name: formData.programa || "miniform_whatsapp",
+        form_name: "whatsapp_miniform",
+        source: "whatsapp_form",
+        event_type: "whatsapp_lead_capture",
+        nombre: formData.nombre,
+        apellido: formData.apellido,
+        email: formData.correo,
+        cedula: formData.cedula,
+        celular: sanitizePhone(formData.telefono),
+        phone: sanitizePhone(formData.telefono),
+        modalidad: formData.modalidad,
+        nivel: formData.nivel,
+        programa: formData.programa,
+        utm_source: utm.utm_source || "whatsapp",
+        utm_medium: utm.utm_medium || "contact_form",
+        utm_campaign: utm.utm_campaign || "miniform_whatsapp",
+        utm_content: utm.utm_content || "",
+        utm_term: utm.utm_term || "",
+        page_url: window.location.href,
+        referrer: document.referrer,
+        title: document.title
+      };
+
+      var response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-webhook-token": webhookToken
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error("HTTP error! status: " + response.status);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error saving lead:", error);
+      throw error;
+    }
+  }
+
+  function openWhatsApp(telefono, mensaje) {
+    var wa_url = "https://wa.me/" + phone + "?text=" + encodeURIComponent(mensaje);
+    window.open(wa_url, "_blank");
+  }
+
+  function showSuccess() {
+    form.style.display = "none";
+    successMsg.style.display = "block";
+  }
+
+  openBtn.addEventListener("click", function () {
+    card.style.display = card.style.display === "none" ? "block" : "none";
+  });
+
+  closeBtn.addEventListener("click", function () {
+    card.style.display = "none";
+  });
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    var fd = new FormData(form);
+    var nombre = String(fd.get("nombre") || "").trim();
+    var apellido = String(fd.get("apellido") || "").trim();
+    var cedula = String(fd.get("cedula") || "").trim();
+    var correo = String(fd.get("correo") || "").trim();
+    var telefono = String(fd.get("telefono") || "").trim();
+    var modalidad = String(fd.get("modalidad") || "online").trim();
+    var nivel = String(fd.get("nivel") || "grado").trim();
+    var programa = String(fd.get("programa") || "el programa").trim();
+
+    if (!nombre || !apellido || !cedula || !correo || !telefono) {
+      alert("Por favor completa todos los campos");
+      return;
+    }
+
+    var formData = {
+      nombre: nombre,
+      apellido: apellido,
+      cedula: cedula,
+      correo: correo,
+      telefono: telefono,
+      modalidad: modalidad,
+      nivel: nivel,
+      programa: programa
+    };
+
+    var utm = getUTMForSubmission();
+    var mensaje = "Hola, soy " + nombre + " " + apellido +
+      ". Estoy interesado en el programa " + programa + "." +
+      "\nCédula: " + cedula +
+      "\nCorreo: " + correo +
+      "\nTeléfono: " + telefono +
+      "\nModalidad: " + modalidad +
+      "\nNivel: " + nivel;
+
+    saveLead(formData, utm)
+      .then(function() {
+        openWhatsApp(telefono, mensaje);
+        showSuccess();
+      })
+      .catch(function(error) {
+        console.error("Error:", error);
+        alert("Hubo un error al guardar tus datos. Por favor intenta de nuevo.");
+      });
+  });
+
+  document.addEventListener("DOMContentLoaded", captureUTMFromPageLoad);
+})();
+</script>

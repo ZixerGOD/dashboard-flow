@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Contact {
+  id                 BigInt    @id @default(autoincrement())
+  cedula             String?   @db.VarChar(64)
+  full_name          String?   @db.VarChar(255)
+  email              String?   @db.VarChar(255)
+  phone              String?   @db.VarChar(64)
+  nombre             String?   @db.VarChar(255)
+  apellido           String?   @db.VarChar(255)
+  modalidad          String?   @db.VarChar(100)
+  nivel              String?   @db.VarChar(100)
+  ciudad             String?   @db.VarChar(100)
+  mecanismo_ingreso  String?   @db.VarChar(150)
+  como_te_contactamos String?  @db.VarChar(150)
+  franja_horaria     String?   @db.VarChar(100)
+  programa           String?   @db.VarChar(255)
+  updated_at DateTime? @db.Timestamptz(6)
+
+  @@map("contacts")
+}
+
+model SiteEvent {
+  id            BigInt   @id @default(autoincrement())
+  campaign_key  String?  @db.VarChar(255)
+  campaign_name String?  @db.VarChar(255)
+  event_type    String?  @db.VarChar(100)
+  form_name     String?  @db.VarChar(255)
+  page_url      String?  @db.Text
+  thank_you_url String?  @db.Text
+  source        String?  @db.VarChar(100)
+  utm_source    String?  @db.VarChar(255)
+  utm_medium    String?  @db.VarChar(255)
+  utm_campaign  String?  @db.VarChar(255)
+  utm_content   String?  @db.VarChar(255)
+  utm_term      String?  @db.VarChar(255)
+  referrer      String?  @db.Text
+  title         String?  @db.VarChar(255)
+  timestamp     DateTime @default(now()) @db.Timestamptz(6)
+
+  @@map("site_events")
+}

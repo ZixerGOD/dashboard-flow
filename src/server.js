@@ -2,6 +2,7 @@ const app = require('./app');
 const logger = require('./config/logger');
 const { env } = require('./config/env');
 const { getPool } = require('./config/database');
+const biMetricsRepository = require('./repositories/bi_metrics.repository');
 
 async function start() {
   const pool = getPool();
@@ -9,6 +10,13 @@ async function start() {
   if (pool) {
     await pool.query('SELECT 1');
     logger.info('database connection ready');
+
+    try {
+      const syncResult = await biMetricsRepository.reconcileBiFromPublic();
+      logger.info({ syncResult }, 'bi reconciliation completed');
+    } catch (syncError) {
+      logger.error({ err: syncError }, 'bi reconciliation failed at startup');
+    }
   }
 
   const server = app.listen(env.PORT, () => {

@@ -1,0 +1,342 @@
+<style>
+  :root {
+    --brand: #821436;
+    --black: #000000;
+    --white: #ffffff;
+    --border: #d1d5db;
+    --success: #047857;
+    --error: #b91c1c;
+  }
+
+  .lead-form-wrap {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 24px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+    font-family: Arial, sans-serif;
+    color: var(--black);
+  }
+
+  .lead-form-wrap h3 {
+    margin: 0 0 18px;
+    font-size: 26px;
+    line-height: 1.15;
+    color: var(--black);
+  }
+
+  .lead-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .lead-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .lead-field.full {
+    grid-column: 1 / -1;
+  }
+
+  .lead-field label {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--black);
+  }
+
+  .lead-field input,
+  .lead-field select {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 15px;
+    background: var(--white);
+    color: var(--black);
+    outline: none;
+  }
+
+  .lead-field input:focus,
+  .lead-field select:focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(130, 20, 54, 0.15);
+  }
+
+  .lead-actions {
+    margin-top: 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .lead-btn {
+    border: 0;
+    border-radius: 10px;
+    padding: 13px 18px;
+    background: var(--brand);
+    color: var(--white);
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+  }
+
+  .lead-btn:hover {
+    opacity: 0.92;
+    transform: translateY(-1px);
+  }
+
+  .lead-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  .lead-status {
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .lead-status.ok {
+    color: var(--success);
+  }
+
+  .lead-status.err {
+    color: var(--error);
+  }
+
+  .lead-success-box {
+    display: none;
+    padding: 18px 16px;
+    margin-top: 16px;
+    border-radius: 12px;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    color: var(--black);
+    font-weight: 700;
+    text-align: center;
+  }
+
+  @media (max-width: 720px) {
+    .lead-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div class="lead-form-wrap">
+  <form id="lead-form" novalidate>
+    <h3>Formulario de admisión</h3>
+
+    <div class="lead-grid">
+      <div class="lead-field">
+        <label for="nombre">Nombre</label>
+        <input id="nombre" name="nombre" type="text" required>
+      </div>
+
+      <div class="lead-field">
+        <label for="apellido">Apellido</label>
+        <input id="apellido" name="apellido" type="text" required>
+      </div>
+
+      <div class="lead-field">
+        <label for="celular">Celular</label>
+        <input id="celular" name="celular" type="tel" required>
+      </div>
+
+      <div class="lead-field">
+        <label for="correo">Correo</label>
+        <input id="correo" name="correo" type="email" required>
+      </div>
+
+      <div class="lead-field">
+        <label for="modalidad">Modalidad</label>
+        <select id="modalidad" name="modalidad" required>
+          <option value="">Selecciona</option>
+          <option value="Presencial">Presencial</option>
+          <option value="Virtual">Virtual</option>
+          <option value="Híbrida">Híbrida</option>
+        </select>
+      </div>
+
+      <div class="lead-field">
+        <label for="nivel">Nivel</label>
+        <select id="nivel" name="nivel" required>
+          <option value="">Selecciona</option>
+          <option value="Pregrado">Pregrado</option>
+          <option value="Postgrado">Postgrado</option>
+          <option value="Maestría">Maestría</option>
+          <option value="Doctorado">Doctorado</option>
+        </select>
+      </div>
+
+      <div class="lead-field">
+        <label for="cedula">Cédula</label>
+        <input id="cedula" name="cedula" type="text" required>
+      </div>
+
+      <div class="lead-field">
+        <label for="ciudad">Ciudad</label>
+        <input id="ciudad" name="ciudad" type="text" required>
+      </div>
+
+      <div class="lead-field">
+        <label for="mecanismo">Mecanismo de ingreso</label>
+        <select id="mecanismo" name="mecanismo" required>
+          <option value="">Selecciona</option>
+          <option value="Examen">Examen</option>
+          <option value="Admisión directa">Admisión directa</option>
+          <option value="Convalidación">Convalidación</option>
+          <option value="Beca">Beca</option>
+          <option value="Otro">Otro</option>
+        </select>
+      </div>
+
+      <div class="lead-field">
+        <label for="como_te_contactamos">Cómo te contactamos</label>
+        <select id="como_te_contactamos" name="como_te_contactamos" required>
+          <option value="">Selecciona</option>
+          <option value="WhatsApp">WhatsApp</option>
+          <option value="Llamada">Llamada</option>
+          <option value="Correo">Correo</option>
+          <option value="SMS">SMS</option>
+        </select>
+      </div>
+
+      <div class="lead-field">
+        <label for="franja_horaria">Franja horaria</label>
+        <select id="franja_horaria" name="franja_horaria" required>
+          <option value="">Selecciona</option>
+          <option value="Mañana">Mañana</option>
+          <option value="Tarde">Tarde</option>
+          <option value="Noche">Noche</option>
+          <option value="Indiferente">Indiferente</option>
+        </select>
+      </div>
+
+      <div class="lead-field full">
+        <input type="hidden" id="programa" name="programa" value="Derecho de Empresa">
+      </div>
+
+      <input type="hidden" id="utm_source" name="utm_source">
+      <input type="hidden" id="utm_medium" name="utm_medium">
+      <input type="hidden" id="utm_campaign" name="utm_campaign">
+      <input type="hidden" id="utm_content" name="utm_content">
+      <input type="hidden" id="utm_term" name="utm_term">
+    </div>
+
+    <div class="lead-actions">
+      <button type="submit" class="lead-btn" id="lead-submit">Enviar</button>
+      <span id="lead-status" class="lead-status"></span>
+    </div>
+  </form>
+
+  <div id="lead-success-box" class="lead-success-box">
+    Enviado correctamente
+  </div>
+</div>
+
+<script>
+(function () {
+  var form = document.getElementById('lead-form');
+  var submitBtn = document.getElementById('lead-submit');
+  var statusEl = document.getElementById('lead-status');
+  var successBox = document.getElementById('lead-success-box');
+  var params = new URLSearchParams(window.location.search);
+  var keys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
+
+  function getStored(key) {
+    try { return localStorage.getItem(key) || ''; } catch (e) { return ''; }
+  }
+
+  function setStored(key, value) {
+    try { localStorage.setItem(key, value); } catch (e) {}
+  }
+
+  function fillHidden(key, value) {
+    var el = document.getElementById(key);
+    if (el) el.value = value || '';
+  }
+
+  function clean(value) {
+    return String(value || '').trim();
+  }
+
+  keys.forEach(function (key) {
+    var value = params.get(key) || getStored(key);
+    if (params.get(key)) setStored(key, params.get(key));
+    fillHidden(key, value);
+  });
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    statusEl.className = 'lead-status';
+    statusEl.textContent = '';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Enviando...';
+
+    var payload = {
+      campaign_name: clean(document.getElementById('programa').value) || document.title || 'Lead Web',
+      event_type: 'wordpress_lead_form',
+      source: 'wordpress_form',
+      skip_crm_match: true,
+      form_name: 'wordpress-lead-form',
+      page_url: window.location.href,
+      thank_you_url: window.location.href.replace(/\/?$/, '/gracias/'),
+      referrer: document.referrer || '',
+      title: document.title || '',
+      timestamp: new Date().toISOString(),
+
+      nombre: clean(document.getElementById('nombre').value),
+      apellido: clean(document.getElementById('apellido').value),
+      celular: clean(document.getElementById('celular').value),
+      correo: clean(document.getElementById('correo').value),
+      modalidad: clean(document.getElementById('modalidad').value),
+      nivel: clean(document.getElementById('nivel').value),
+      cedula: clean(document.getElementById('cedula').value),
+      ciudad: clean(document.getElementById('ciudad').value),
+      mecanismo: clean(document.getElementById('mecanismo').value),
+      como_te_contactamos: clean(document.getElementById('como_te_contactamos').value),
+      franja_horaria: clean(document.getElementById('franja_horaria').value),
+      programa: clean(document.getElementById('programa').value),
+
+      utm_source: document.getElementById('utm_source').value || '',
+      utm_medium: document.getElementById('utm_medium').value || '',
+      utm_campaign: document.getElementById('utm_campaign').value || '',
+      utm_content: document.getElementById('utm_content').value || '',
+      utm_term: document.getElementById('utm_term').value || ''
+    };
+
+    try {
+      var response = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Webhook-Token': TOKEN
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error('HTTP ' + response.status);
+      }
+
+      form.style.display = 'none';
+      successBox.style.display = 'block';
+      statusEl.textContent = '';
+      console.log('[LEAD_FORM] enviado correctamente', payload);
+    } catch (error) {
+      console.error('[LEAD_FORM] error', error);
+      statusEl.className = 'lead-status err';
+      statusEl.textContent = 'Error al enviar';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Enviar';
+    }
+  });
+})();
+</script>
