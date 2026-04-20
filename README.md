@@ -186,7 +186,6 @@ Default variant (full form):
 <script
 	src="https://webservices.devmaniacs.net/widgets/lead.js"
 	data-programa="Derecho de Empresa"
-	data-title="Formulario de admision"
 ></script>
 ```
 

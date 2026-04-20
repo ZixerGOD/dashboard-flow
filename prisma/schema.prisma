@@ -9,6 +9,7 @@ datasource db {
 
 model Contact {
   id                 BigInt    @id @default(autoincrement())
+  lead_code          String?   @db.VarChar(16)
   cedula             String?   @db.VarChar(64)
   full_name          String?   @db.VarChar(255)
   email              String?   @db.VarChar(255)
@@ -35,7 +36,7 @@ model SiteEvent {
   form_name     String?  @db.VarChar(255)
   page_url      String?  @db.Text
   thank_you_url String?  @db.Text
-  source        String?  @db.VarChar(100)
+  platform      String?  @db.VarChar(100)
   utm_source    String?  @db.VarChar(255)
   utm_medium    String?  @db.VarChar(255)
   utm_campaign  String?  @db.VarChar(255)
@@ -46,4 +47,19 @@ model SiteEvent {
   timestamp     DateTime @default(now()) @db.Timestamptz(6)
 
   @@map("site_events")
+}
+
+model LeadEventMatch {
+  id           BigInt   @id @default(autoincrement())
+  contact_id   BigInt
+  site_event_id BigInt
+  lead_code    String   @db.VarChar(16)
+  match_type   String   @default("INGEST") @db.VarChar(32)
+  matched_at   DateTime @default(now()) @db.Timestamptz(6)
+
+  @@unique([site_event_id])
+  @@unique([contact_id, site_event_id])
+  @@index([lead_code])
+  @@index([contact_id])
+  @@map("lead_event_matches")
 }

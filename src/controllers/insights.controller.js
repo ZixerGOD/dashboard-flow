@@ -1,6 +1,10 @@
 const { sendSuccess } = require('../utils/response');
 const insightsService = require('../services/insights.service');
 
+function normalizePlatform(value) {
+  return String(value == null ? '' : value).trim().toUpperCase();
+}
+
 async function ingestInsights(req, res, next) {
   try {
     const result = await insightsService.processInsightsPayload(req.body);
@@ -12,7 +16,7 @@ async function ingestInsights(req, res, next) {
 
 async function trackConversion(req, res, next) {
   try {
-    const { campaign_name, utm_source, utm_medium, utm_campaign, utm_content, utm_term, source, referrer, referrer_clean, referrer_full } = req.query;
+    const { campaign_name, utm_source, utm_medium, utm_campaign, utm_content, utm_term, platform, source, referrer, referrer_clean, referrer_full } = req.query;
 
     if (!campaign_name) {
       return sendPixel(res);
@@ -21,7 +25,7 @@ async function trackConversion(req, res, next) {
     const payload = {
       campaign_name: String(campaign_name).substring(0, 255),
       event_type: 'iframe_form_conversion',
-      source: source || 'iframe_form',
+      platform: normalizePlatform(platform || source || 'iframe_form'),
       skip_crm_match: true,
       form_name: 'third-party-form',
       page_url: req.get('referer') || '',

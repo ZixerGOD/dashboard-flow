@@ -1,4 +1,5 @@
 const { getPool } = require('../config/database');
+const { cleanUpper } = require('../utils/sanitize');
 
 /**
  * Saves a site event (anonymous conversion) to the database.
@@ -19,10 +20,12 @@ async function saveEvent(event) {
     form_name,
     page_url,
     thank_you_url,
-    source,
+    platform,
     timestamp,
     metadata
   } = event;
+
+  const normalizedPlatform = String(platform || event.source || '').trim().toUpperCase() || null;
 
   const query = `
     INSERT INTO site_events (
@@ -32,7 +35,7 @@ async function saveEvent(event) {
       form_name,
       page_url,
       thank_you_url,
-      source,
+      platform,
       utm_source,
       utm_medium,
       utm_campaign,
@@ -44,27 +47,31 @@ async function saveEvent(event) {
     ) VALUES (
       $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
     )
+    RETURNING id
   `;
 
   const values = [
-    campaign_key || null,
-    campaign_name || null,
-    event_type || null,
-    form_name || null,
+    cleanUpper(campaign_key) || null,
+    cleanUpper(campaign_name) || null,
+    cleanUpper(event_type) || null,
+    cleanUpper(form_name) || null,
     page_url || null,
     thank_you_url || null,
-    source || null,
-    metadata?.utm_source || null,
-    metadata?.utm_medium || null,
-    metadata?.utm_campaign || null,
-    metadata?.utm_content || null,
-    metadata?.utm_term || null,
-    metadata?.referrer || null,
-    metadata?.title || null,
+    cleanUpper(normalizedPlatform) || null,
+    cleanUpper(metadata?.utm_source) || null,
+    cleanUpper(metadata?.utm_medium) || null,
+    cleanUpper(metadata?.utm_campaign) || null,
+    cleanUpper(metadata?.utm_content) || null,
+    cleanUpper(metadata?.utm_term) || null,
+    cleanUpper(metadata?.referrer) || null,
+    cleanUpper(metadata?.title) || null,
     timestamp || new Date().toISOString()
   ];
 
-  await pool.query(query, values);
+  const result = await pool.query(query, values);
+  return {
+    id: result.rows[0]?.id || null
+  };
 }
 
 module.exports = {

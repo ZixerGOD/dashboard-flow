@@ -1,5 +1,5 @@
 const { getPool } = require('../config/database');
-const { cleanEmail, cleanPhone } = require('../utils/sanitize');
+const { cleanEmail, cleanPhone, cleanUpper } = require('../utils/sanitize');
 
 async function findByPhoneOrEmail(contact) {
   const pool = getPool();
@@ -17,7 +17,7 @@ async function findByPhoneOrEmail(contact) {
 
   const { rows } = await pool.query(
     `
-      SELECT cedula, full_name, email, phone
+      SELECT lead_code, cedula, full_name, email, phone
       FROM contacts
       WHERE (
         $1 <> '' AND regexp_replace(coalesce(phone, ''), '[^0-9]', '', 'g') = $1
@@ -43,10 +43,22 @@ async function upsertLead(contact) {
   const cedula = String(contact.cedula || '').trim();
   const phone = cleanPhone(contact.phone || contact.celular || '');
   const email = cleanEmail(contact.email || contact.correo || '');
+  const emailUpper = email.toUpperCase();
+  const cedulaUpper = cleanUpper(cedula);
+  const fullNameUpper = cleanUpper(contact.full_name);
+  const nombreUpper = cleanUpper(contact.nombre);
+  const apellidoUpper = cleanUpper(contact.apellido);
+  const modalidadUpper = cleanUpper(contact.modalidad);
+  const nivelUpper = cleanUpper(contact.nivel);
+  const ciudadUpper = cleanUpper(contact.ciudad);
+  const mecanismoIngresoUpper = cleanUpper(contact.mecanismo_ingreso || contact.mecanismo);
+  const comoTeContactamosUpper = cleanUpper(contact.como_te_contactamos);
+  const franjaHorariaUpper = cleanUpper(contact.franja_horaria);
+  const programaUpper = cleanUpper(contact.programa);
 
   const existing = await pool.query(
     `
-      SELECT id
+      SELECT id, lead_code
       FROM contacts
       WHERE (
         $1 <> '' AND coalesce(cedula, '') = $1
@@ -58,23 +70,23 @@ async function upsertLead(contact) {
       ORDER BY updated_at DESC NULLS LAST, id DESC
       LIMIT 1
     `,
-    [cedula, phone, email]
+    [cedulaUpper, phone, email]
   );
 
   const params = [
-    cedula || null,
-    contact.full_name || null,
-    contact.nombre || null,
-    contact.apellido || null,
-    email || null,
+    cedulaUpper || null,
+    fullNameUpper || null,
+    nombreUpper || null,
+    apellidoUpper || null,
+    emailUpper || null,
     phone || null,
-    contact.modalidad || null,
-    contact.nivel || null,
-    contact.ciudad || null,
-    contact.mecanismo_ingreso || contact.mecanismo || null,
-    contact.como_te_contactamos || null,
-    contact.franja_horaria || null,
-    contact.programa || null
+    modalidadUpper || null,
+    nivelUpper || null,
+    ciudadUpper || null,
+    mecanismoIngresoUpper || null,
+    comoTeContactamosUpper || null,
+    franjaHorariaUpper || null,
+    programaUpper || null
   ];
 
   if (existing.rows[0]) {
@@ -103,7 +115,7 @@ async function upsertLead(contact) {
       [...params, id]
     );
 
-    return { id, action: 'updated' };
+    return { id, lead_code: existing.rows[0].lead_code || null, action: 'updated' };
   }
 
   const insertResult = await pool.query(
@@ -124,26 +136,30 @@ async function upsertLead(contact) {
         programa,
         updated_at
       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,now())
-      RETURNING id
+      RETURNING id, lead_code
     `,
     [
-      cedula || null,
-      contact.full_name || null,
-      contact.nombre || null,
-      contact.apellido || null,
-      email || null,
+      cedulaUpper || null,
+      fullNameUpper || null,
+      nombreUpper || null,
+      apellidoUpper || null,
+      emailUpper || null,
       phone || null,
-      contact.modalidad || null,
-      contact.nivel || null,
-      contact.ciudad || null,
-      contact.mecanismo_ingreso || contact.mecanismo || null,
-      contact.como_te_contactamos || null,
-      contact.franja_horaria || null,
-      contact.programa || null
+      modalidadUpper || null,
+      nivelUpper || null,
+      ciudadUpper || null,
+      mecanismoIngresoUpper || null,
+      comoTeContactamosUpper || null,
+      franjaHorariaUpper || null,
+      programaUpper || null
     ]
   );
 
-  return { id: insertResult.rows[0]?.id || null, action: 'inserted' };
+  return {
+    id: insertResult.rows[0]?.id || null,
+    lead_code: insertResult.rows[0]?.lead_code || null,
+    action: 'inserted'
+  };
 }
 
 module.exports = { findByPhoneOrEmail, upsertLead };

@@ -1,6 +1,7 @@
 const crmRepository = require('../repositories/crm.repository');
 const contactRepository = require('../repositories/contact.repository');
 const siteEventRepository = require('../repositories/site_event.repository');
+const leadEventMatchRepository = require('../repositories/lead_event_match.repository');
 const biMetricsRepository = require('../repositories/bi_metrics.repository');
 const logger = require('../config/logger');
 const { cleanText, cleanMaybeJsonValue } = require('../utils/sanitize');
@@ -89,7 +90,8 @@ function shouldSkipCrmMatch(row) {
     return ['1', 'true', 'yes', 'on'].includes(row.skip_crm_match.toLowerCase());
   }
 
-  return row?.source === 'wordpress' || row?.source === 'site' || row?.source === 'web' || row?.source === 'fb' || row?.event_type === 'wordpress_thank_you';
+  const platform = cleanMaybeJsonValue(row?.platform || row?.source || '').toLowerCase();
+  return platform === 'wordpress' || platform === 'site' || platform === 'web' || platform === 'fb' || row?.event_type === 'wordpress_thank_you';
 }
 
 function stripLabeledValue(value) {
@@ -136,6 +138,10 @@ function normalizeSource(value) {
   return '';
 }
 
+function normalizePlatform(value) {
+  return stripLabeledValue(value).toUpperCase();
+}
+
 function inferSource(row) {
   const explicitSource = normalizeSource(row.source || row.origen || row.platform || row.plataforma || row.referrer || row.referrer_clean || row.referrer_full || '');
 
@@ -177,7 +183,7 @@ function mapSiteEventRow(row) {
     form_name: stripLabeledValue(row.form_name || row.formName || ''),
     page_url: cleanMaybeJsonValue(row.page_url || row.pageUrl || ''),
     thank_you_url: cleanMaybeJsonValue(row.thank_you_url || row.thankYouUrl || ''),
-    source: inferSource(row) || cleanMaybeJsonValue(row.source || 'web'),
+    platform: normalizePlatform(inferSource(row) || cleanMaybeJsonValue(row.platform || row.source || 'web')),
     timestamp: row.timestamp || row.occurred_at || new Date().toISOString(),
     metadata: {
       utm_source: stripLabeledValue(row.utm_source || ''),
@@ -239,13 +245,25 @@ async function processInsightsPayload(payload) {
       const siteEvent = mapSiteEventRow(row);
       const contact = mapContactRow(row);
 
-      await siteEventRepository.saveEvent(siteEvent);
+      const siteEventResult = await siteEventRepository.saveEvent(siteEvent);
       const contactResult = await contactRepository.upsertLead(contact);
+
+      try {
+        await leadEventMatchRepository.createMatch({
+          contactId: contactResult?.id || null,
+          siteEventId: siteEventResult?.id || null,
+          leadCode: contactResult?.lead_code || null,
+          matchType: 'INGEST'
+        });
+      } catch (linkError) {
+        logger.error({ err: linkError }, 'Failed to persist lead-event match');
+      }
 
       try {
         await biMetricsRepository.recordSiteEventMetrics({
           siteEvent,
-          contactId: contactResult?.id || null
+          contactId: contactResult?.id || null,
+          leadCode: contactResult?.lead_code || null
         });
       } catch (metricsError) {
         logger.error({ err: metricsError }, 'Failed to update BI metrics');

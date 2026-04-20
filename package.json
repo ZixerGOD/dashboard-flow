@@ -7,6 +7,10 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
+    "bi:reconcile": "node src/scripts/reconcile-bi.js",
+    "insights:sync:google": "node src/scripts/sync-google-ads-insights.js",
+    "insights:sync:meta": "node src/scripts/sync-meta-ads-insights.js",
+    "insights:sync:tiktok": "node src/scripts/sync-tiktok-ads-insights.js",
     "pm2:start": "pm2 start ecosystem.config.js",
     "pm2:stop": "pm2 stop dashboard-flow",
     "pm2:restart": "pm2 restart dashboard-flow",

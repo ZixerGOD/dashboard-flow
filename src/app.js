@@ -1,10 +1,13 @@
 const express = require('express');
 const healthRoutes = require('./routes/health.routes');
+const dashboardRoutes = require('./routes/dashboard.routes');
 const insightsRoutes = require('./routes/insights.routes');
 const analyticsRoutes = require('./routes/analytics.routes');
 const widgetsRoutes = require('./routes/widgets.routes');
+const googleAdsOAuthRoutes = require('./routes/googleAdsOAuth.routes');
 const requestLogger = require('./middlewares/requestLogger');
 const errorHandler = require('./middlewares/errorHandler');
+const { requireDashboardAuth } = require('./middlewares/dashboardAuth');
 const { env } = require('./config/env');
 
 function rawBodySaver(req, res, buf) {
@@ -59,13 +62,11 @@ function createApp() {
   app.use(requestLogger);
 
   app.use('/health', healthRoutes);
+  app.use('/', dashboardRoutes);
   app.use('/ingest/insights', insightsRoutes);
-  app.use('/api/analytics', analyticsRoutes);
+  app.use('/api/analytics', requireDashboardAuth, analyticsRoutes);
   app.use('/widgets', widgetsRoutes);
-
-  app.get('/', (req, res) => {
-    res.json({ ok: true, service: 'uees-insights-middleware' });
-  });
+  app.use('/oauth/google-ads', googleAdsOAuthRoutes);
 
   app.use(errorHandler);
 

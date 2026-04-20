@@ -4,6 +4,10 @@ const insightsService = require('../services/insights.service');
 
 const leadScriptPath = path.resolve(__dirname, '../widgets/lead.js');
 
+function normalizePlatform(value) {
+  return String(value == null ? '' : value).trim().toUpperCase();
+}
+
 function serveLeadScript(req, res) {
   res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
   res.setHeader('Cache-Control', 'public, max-age=300');
@@ -21,7 +25,7 @@ async function submitLead(req, res, next) {
     const payload = {
       ...body,
       skip_crm_match: true,
-      source: body.source || 'web',
+      platform: normalizePlatform(body.platform || body.source || 'web'),
       event_type: body.event_type || 'widget_lead_form',
       form_name: body.form_name || 'embedded-lead-widget'
     };

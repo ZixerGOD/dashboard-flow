@@ -7,7 +7,171 @@ function toDateOnly(value) {
 
 function isTruthyEventType(eventType) {
   const normalized = String(eventType || '').toLowerCase();
-  return normalized.includes('conversion') || normalized.includes('thank_you') || normalized.includes('lead') || normalized.includes('submit');
+  return normalized.includes('conversion') || normalized.includes('thank_you') || normalized.includes('lead') || normalized.includes('submit') || normalized.includes('web');
+}
+
+const MONTHLY_TARGETS_2026 = [
+  { month: 1, month_name: 'enero', leads_target: 3837, lead_share_pct: 7.4, sales_target: 338, conversion_rate_target: 9 },
+  { month: 2, month_name: 'febrero', leads_target: 3888, lead_share_pct: 7.5, sales_target: 452, conversion_rate_target: 12 },
+  { month: 3, month_name: 'marzo', leads_target: 5247, lead_share_pct: 10.2, sales_target: 521, conversion_rate_target: 10 },
+  { month: 4, month_name: 'abril', leads_target: 5227, lead_share_pct: 10.1, sales_target: 361, conversion_rate_target: 7 },
+  { month: 5, month_name: 'mayo', leads_target: 5586, lead_share_pct: 10.8, sales_target: 565, conversion_rate_target: 10 },
+  { month: 6, month_name: 'junio', leads_target: 4648, lead_share_pct: 9, sales_target: 342, conversion_rate_target: 7 },
+  { month: 7, month_name: 'julio', leads_target: 4103, lead_share_pct: 7.9, sales_target: 478, conversion_rate_target: 12 },
+  { month: 8, month_name: 'agosto', leads_target: 4477, lead_share_pct: 8.7, sales_target: 368, conversion_rate_target: 8 },
+  { month: 9, month_name: 'septiembre', leads_target: 4250, lead_share_pct: 8.2, sales_target: 469, conversion_rate_target: 11 },
+  { month: 10, month_name: 'octubre', leads_target: 4563, lead_share_pct: 8.8, sales_target: 378, conversion_rate_target: 8 },
+  { month: 11, month_name: 'noviembre', leads_target: 3056, lead_share_pct: 5.9, sales_target: 274, conversion_rate_target: 9 },
+  { month: 12, month_name: 'diciembre', leads_target: 2751, lead_share_pct: 5.3, sales_target: 314, conversion_rate_target: 11 }
+];
+
+async function ensureMonthlyTargets(client) {
+  await client.query(
+    `
+      CREATE TABLE IF NOT EXISTS bi.monthly_targets (
+        year smallint NOT NULL,
+        month smallint NOT NULL CHECK (month BETWEEN 1 AND 12),
+        month_name varchar(20) NOT NULL,
+        leads_target integer NOT NULL,
+        lead_share_pct numeric(5,2) NOT NULL,
+        sales_target integer NOT NULL,
+        conversion_rate_target numeric(5,2) NOT NULL,
+        PRIMARY KEY (year, month)
+      )
+    `
+  );
+
+  for (const target of MONTHLY_TARGETS_2026) {
+    await client.query(
+      `
+        INSERT INTO bi.monthly_targets (
+          year,
+          month,
+          month_name,
+          leads_target,
+          lead_share_pct,
+          sales_target,
+          conversion_rate_target
+        ) VALUES ($1,$2,$3,$4,$5,$6,$7)
+        ON CONFLICT (year, month)
+        DO UPDATE SET
+          month_name = EXCLUDED.month_name,
+          leads_target = EXCLUDED.leads_target,
+          lead_share_pct = EXCLUDED.lead_share_pct,
+          sales_target = EXCLUDED.sales_target,
+          conversion_rate_target = EXCLUDED.conversion_rate_target
+      `,
+      [2026, target.month, target.month_name, target.leads_target, target.lead_share_pct, target.sales_target, target.conversion_rate_target]
+    );
+  }
+}
+
+async function ensureDashboardViews(client) {
+  await client.query('DROP VIEW IF EXISTS bi.v_dashboard_monthly');
+  await client.query('DROP VIEW IF EXISTS bi.v_dashboard_daily');
+  await client.query('DROP VIEW IF EXISTS bi.v_campaign_marketing_funnel');
+  await client.query('DROP VIEW IF EXISTS bi.v_campaign_kpis');
+
+  await client.query(
+    `
+      CREATE VIEW bi.v_dashboard_daily AS
+      WITH paid AS (
+        SELECT
+          day,
+          UPPER(COALESCE(source, '')) AS source,
+          campaign_key,
+          campaign_name,
+          currency_code,
+          spend,
+          clicks,
+          impressions,
+          reach,
+          conversions AS conversions_api,
+          provider_campaign_id,
+          provider_account_id
+        FROM bi.fact_paid_campaign_daily
+      ),
+      leads AS (
+        SELECT
+          f.day,
+          UPPER(COALESCE(c.source, '')) AS source,
+          c.campaign_key,
+          c.campaign_name,
+          SUM(f.events_count)::bigint AS events_count,
+          SUM(f.conversions_count)::bigint AS conversions_web,
+          SUM(f.leads_new_count)::bigint AS leads_new_count,
+          SUM(f.leads_touch_count)::bigint AS leads_touch_count
+        FROM bi.fact_campaign_daily f
+        JOIN bi.dim_campaign c ON c.campaign_id = f.campaign_id
+        GROUP BY f.day, UPPER(COALESCE(c.source, '')), c.campaign_key, c.campaign_name
+      )
+      SELECT
+        COALESCE(p.day, l.day) AS day,
+        DATE_TRUNC('month', COALESCE(p.day, l.day))::date AS month_start,
+        UPPER(COALESCE(NULLIF(p.source, ''), NULLIF(l.source, ''), '')) AS source,
+        COALESCE(NULLIF(p.campaign_key, ''), NULLIF(l.campaign_key, '')) AS campaign_key,
+        COALESCE(NULLIF(p.campaign_name, ''), NULLIF(l.campaign_name, '')) AS campaign_name,
+        COALESCE(p.currency_code, '') AS currency_code,
+        COALESCE(p.spend, 0::numeric) AS spend,
+        COALESCE(p.clicks, 0::bigint) AS clicks,
+        COALESCE(p.impressions, 0::bigint) AS impressions,
+        COALESCE(p.reach, 0::bigint) AS reach,
+        COALESCE(p.conversions_api, 0::numeric) AS conversions_api,
+        COALESCE(l.events_count, 0::bigint) AS events_count,
+        COALESCE(l.conversions_web, 0::bigint) AS conversions_web,
+        COALESCE(l.leads_new_count, 0::bigint) AS leads_new_count,
+        COALESCE(l.leads_touch_count, 0::bigint) AS leads_touch_count,
+        COALESCE(mt.leads_target, 0)::bigint AS leads_target,
+        COALESCE(mt.lead_share_pct, 0::numeric) AS lead_share_pct,
+        COALESCE(mt.sales_target, 0)::bigint AS sales_target,
+        COALESCE(mt.conversion_rate_target, 0::numeric) AS conversion_rate_target,
+        CASE WHEN COALESCE(p.clicks, 0) > 0 THEN ROUND((COALESCE(p.spend, 0) / NULLIF(p.clicks, 0))::numeric, 4) ELSE NULL END AS cpc,
+        CASE WHEN COALESCE(l.leads_new_count, 0) > 0 THEN ROUND((COALESCE(p.spend, 0) / NULLIF(l.leads_new_count, 0))::numeric, 4) ELSE NULL END AS cpl,
+        CASE WHEN COALESCE(l.conversions_web, 0) > 0 THEN ROUND((COALESCE(p.spend, 0) / NULLIF(l.conversions_web, 0))::numeric, 4) ELSE NULL END AS cpa,
+        CASE WHEN COALESCE(mt.leads_target, 0) > 0 THEN ROUND((COALESCE(l.leads_new_count, 0)::numeric / NULLIF(mt.leads_target, 0)) * 100, 2) ELSE NULL END AS lead_completion_pct,
+        CASE WHEN COALESCE(mt.sales_target, 0) > 0 THEN ROUND((COALESCE(l.conversions_web, 0)::numeric / NULLIF(mt.sales_target, 0)) * 100, 2) ELSE NULL END AS sales_completion_pct
+      FROM paid p
+      FULL OUTER JOIN leads l
+        ON p.day = l.day
+       AND UPPER(COALESCE(p.source, '')) = UPPER(COALESCE(l.source, ''))
+       AND p.campaign_key = l.campaign_key
+      LEFT JOIN bi.monthly_targets mt
+        ON mt.year = EXTRACT(YEAR FROM COALESCE(p.day, l.day))::smallint
+       AND mt.month = EXTRACT(MONTH FROM COALESCE(p.day, l.day))::smallint
+    `
+  );
+
+  await client.query(
+    `
+      CREATE VIEW bi.v_dashboard_monthly AS
+      SELECT
+        DATE_TRUNC('month', day)::date AS month_start,
+        source,
+        campaign_key,
+        campaign_name,
+        currency_code,
+        SUM(spend)::numeric(18,6) AS spend,
+        SUM(clicks)::bigint AS clicks,
+        SUM(impressions)::bigint AS impressions,
+        SUM(reach)::bigint AS reach,
+        SUM(conversions_api)::numeric(18,4) AS conversions_api,
+        SUM(events_count)::bigint AS events_count,
+        SUM(conversions_web)::bigint AS conversions_web,
+        SUM(leads_new_count)::bigint AS leads_new_count,
+        SUM(leads_touch_count)::bigint AS leads_touch_count,
+        MAX(leads_target)::bigint AS leads_target,
+        MAX(lead_share_pct)::numeric(5,2) AS lead_share_pct,
+        MAX(sales_target)::bigint AS sales_target,
+        MAX(conversion_rate_target)::numeric(5,2) AS conversion_rate_target,
+        CASE WHEN SUM(clicks) > 0 THEN ROUND((SUM(spend) / NULLIF(SUM(clicks), 0))::numeric, 4) ELSE NULL END AS cpc,
+        CASE WHEN SUM(leads_new_count) > 0 THEN ROUND((SUM(spend) / NULLIF(SUM(leads_new_count), 0))::numeric, 4) ELSE NULL END AS cpl,
+        CASE WHEN SUM(conversions_web) > 0 THEN ROUND((SUM(spend) / NULLIF(SUM(conversions_web), 0))::numeric, 4) ELSE NULL END AS cpa,
+        CASE WHEN MAX(leads_target) > 0 THEN ROUND((SUM(leads_new_count)::numeric / NULLIF(MAX(leads_target), 0)) * 100, 2) ELSE NULL END AS lead_completion_pct,
+        CASE WHEN MAX(sales_target) > 0 THEN ROUND((SUM(conversions_web)::numeric / NULLIF(MAX(sales_target), 0)) * 100, 2) ELSE NULL END AS sales_completion_pct
+      FROM bi.v_dashboard_daily
+      GROUP BY DATE_TRUNC('month', day)::date, source, campaign_key, campaign_name, currency_code
+    `
+  );
 }
 
 async function upsertCampaign(client, payload) {
@@ -56,8 +220,8 @@ async function upsertCampaign(client, payload) {
   return result.rows[0]?.campaign_id || null;
 }
 
-async function upsertLeadCampaignBridge(client, contactId, campaignId, eventTimestamp) {
-  if (!contactId || !campaignId) {
+async function upsertLeadCampaignBridge(client, contactId, leadCode, campaignId, eventTimestamp) {
+  if (!campaignId || !leadCode) {
     return false;
   }
 
@@ -65,15 +229,16 @@ async function upsertLeadCampaignBridge(client, contactId, campaignId, eventTime
     `
       INSERT INTO bi.bridge_lead_campaign (
         contact_id,
+        lead_code,
         campaign_id,
         first_event_at,
         last_event_at,
         touch_count
-      ) VALUES ($1,$2,$3,$3,1)
-      ON CONFLICT (contact_id, campaign_id) DO NOTHING
-      RETURNING contact_id
+      ) VALUES ($1,$2,$3,$4,$4,1)
+      ON CONFLICT (lead_code, campaign_id) DO NOTHING
+      RETURNING lead_code
     `,
-    [contactId, campaignId, eventTimestamp]
+    [contactId || null, leadCode, campaignId, eventTimestamp]
   );
 
   if (insertResult.rowCount > 0) {
@@ -84,11 +249,12 @@ async function upsertLeadCampaignBridge(client, contactId, campaignId, eventTime
     `
       UPDATE bi.bridge_lead_campaign
       SET
+        contact_id = COALESCE($1, contact_id),
         last_event_at = $3,
         touch_count = touch_count + 1
-      WHERE contact_id = $1 AND campaign_id = $2
+      WHERE lead_code = $4 AND campaign_id = $2
     `,
-    [contactId, campaignId, eventTimestamp]
+    [contactId || null, campaignId, eventTimestamp, leadCode]
   );
 
   return false;
@@ -123,7 +289,7 @@ async function upsertDailyFact(client, payload) {
   );
 }
 
-async function recordSiteEventMetrics({ siteEvent, contactId }) {
+async function recordSiteEventMetrics({ siteEvent, contactId, leadCode }) {
   const pool = getPool();
 
   if (!pool || !siteEvent?.campaign_key || !siteEvent?.campaign_name) {
@@ -136,7 +302,7 @@ async function recordSiteEventMetrics({ siteEvent, contactId }) {
   const campaignPayload = {
     campaign_key: String(siteEvent.campaign_key).trim(),
     campaign_name: String(siteEvent.campaign_name).trim(),
-    source: siteEvent.source || null,
+    source: siteEvent.platform || null,
     referrer: siteEvent.metadata?.referrer || null,
     utm_source: siteEvent.metadata?.utm_source || null,
     utm_medium: siteEvent.metadata?.utm_medium || null,
@@ -152,7 +318,7 @@ async function recordSiteEventMetrics({ siteEvent, contactId }) {
     await client.query('BEGIN');
 
     const campaignId = await upsertCampaign(client, campaignPayload);
-    const isNewLeadCampaign = await upsertLeadCampaignBridge(client, contactId, campaignId, safeEventTimestamp);
+    const isNewLeadCampaign = await upsertLeadCampaignBridge(client, contactId, leadCode, campaignId, safeEventTimestamp);
 
     await upsertDailyFact(client, {
       day: toDateOnly(safeEventTimestamp),
@@ -179,6 +345,7 @@ async function reconcileBiFromPublic() {
   if (!pool) {
     return {
       campaigns_upserted: 0,
+      bridge_upserted: 0,
       facts_upserted: 0
     };
   }
@@ -187,6 +354,7 @@ async function reconcileBiFromPublic() {
 
   try {
     await client.query('BEGIN');
+    await ensureMonthlyTargets(client);
 
     const campaignsResult = await client.query(
       `
@@ -195,7 +363,7 @@ async function reconcileBiFromPublic() {
             s.id,
             s.campaign_key,
             s.campaign_name,
-            s.source,
+            s.platform,
             s.referrer,
             s.utm_source,
             s.utm_medium,
@@ -265,9 +433,9 @@ async function reconcileBiFromPublic() {
         latest_source AS (
           SELECT DISTINCT ON (e.campaign_key)
             e.campaign_key,
-            e.source
+            e.platform
           FROM events e
-          WHERE COALESCE(TRIM(e.source), '') <> ''
+          WHERE COALESCE(TRIM(e.platform), '') <> ''
           ORDER BY e.campaign_key, e.timestamp DESC, e.id DESC
         ),
         latest_referrer AS (
@@ -294,7 +462,7 @@ async function reconcileBiFromPublic() {
         SELECT
           a.campaign_key,
           ln.campaign_name,
-          ls.source,
+          ls.platform,
           lr.referrer,
           lus.utm_source,
           lum.utm_medium,
@@ -327,6 +495,54 @@ async function reconcileBiFromPublic() {
       `
     );
 
+    const bridgeCleanupResult = await client.query(
+      `
+        DELETE FROM bi.bridge_lead_campaign blc
+        WHERE NOT EXISTS (
+          SELECT 1
+          FROM lead_event_matches lem
+          JOIN site_events se ON se.id = lem.site_event_id
+          JOIN bi.dim_campaign dc ON dc.campaign_key = se.campaign_key
+          WHERE COALESCE(TRIM(lem.lead_code), '') <> ''
+            AND COALESCE(TRIM(se.campaign_key), '') <> ''
+            AND lem.lead_code = blc.lead_code
+            AND dc.campaign_id = blc.campaign_id
+        )
+      `
+    );
+
+    const bridgeResult = await client.query(
+      `
+        INSERT INTO bi.bridge_lead_campaign (
+          contact_id,
+          lead_code,
+          campaign_id,
+          first_event_at,
+          last_event_at,
+          touch_count
+        )
+        SELECT
+          lem.contact_id,
+          lem.lead_code,
+          dc.campaign_id,
+          MIN(se.timestamp) AS first_event_at,
+          MAX(se.timestamp) AS last_event_at,
+          COUNT(*)::integer AS touch_count
+        FROM lead_event_matches lem
+        JOIN site_events se ON se.id = lem.site_event_id
+        JOIN bi.dim_campaign dc ON dc.campaign_key = se.campaign_key
+        WHERE COALESCE(TRIM(lem.lead_code), '') <> ''
+          AND COALESCE(TRIM(se.campaign_key), '') <> ''
+        GROUP BY lem.contact_id, lem.lead_code, dc.campaign_id
+        ON CONFLICT (lead_code, campaign_id)
+        DO UPDATE SET
+          contact_id = COALESCE(EXCLUDED.contact_id, bi.bridge_lead_campaign.contact_id),
+          first_event_at = LEAST(bi.bridge_lead_campaign.first_event_at, EXCLUDED.first_event_at),
+          last_event_at = GREATEST(bi.bridge_lead_campaign.last_event_at, EXCLUDED.last_event_at),
+          touch_count = EXCLUDED.touch_count
+      `
+    );
+
     const factsResult = await client.query(
       `
         INSERT INTO bi.fact_campaign_daily (
@@ -347,12 +563,35 @@ async function reconcileBiFromPublic() {
                OR LOWER(COALESCE(s.event_type, '')) LIKE '%lead%'
                OR LOWER(COALESCE(s.event_type, '')) LIKE '%submit%'
           )::bigint AS conversions_count,
-          COUNT(*)::bigint AS leads_new_count,
-          COUNT(*)::bigint AS leads_touch_count
+          COALESCE(lead_counts.leads_new_count, 0)::bigint AS leads_new_count,
+          COALESCE(lead_counts.leads_touch_count, 0)::bigint AS leads_touch_count
         FROM site_events s
         JOIN bi.dim_campaign c ON c.campaign_key = s.campaign_key
+        LEFT JOIN (
+          WITH first_lead_day AS (
+            SELECT
+              lem.lead_code,
+              MIN(DATE(se.timestamp)) AS first_day
+            FROM lead_event_matches lem
+            JOIN site_events se ON se.id = lem.site_event_id
+            WHERE COALESCE(TRIM(lem.lead_code), '') <> ''
+            GROUP BY lem.lead_code
+          )
+          SELECT
+            DATE(se.timestamp) AS day,
+            dc.campaign_id,
+            COUNT(DISTINCT lem.lead_code)::bigint AS leads_touch_count,
+            COUNT(DISTINCT CASE WHEN fld.first_day = DATE(se.timestamp) THEN lem.lead_code END)::bigint AS leads_new_count
+          FROM lead_event_matches lem
+          JOIN site_events se ON se.id = lem.site_event_id
+          JOIN bi.dim_campaign dc ON dc.campaign_key = se.campaign_key
+          LEFT JOIN first_lead_day fld ON fld.lead_code = lem.lead_code
+          WHERE COALESCE(TRIM(se.campaign_key), '') <> ''
+            AND COALESCE(TRIM(lem.lead_code), '') <> ''
+          GROUP BY DATE(se.timestamp), dc.campaign_id
+        ) lead_counts ON lead_counts.day = DATE(s.timestamp) AND lead_counts.campaign_id = c.campaign_id
         WHERE COALESCE(TRIM(s.campaign_key), '') <> ''
-        GROUP BY DATE(s.timestamp), c.campaign_id
+        GROUP BY DATE(s.timestamp), c.campaign_id, lead_counts.leads_new_count, lead_counts.leads_touch_count
         ON CONFLICT (day, campaign_id)
         DO UPDATE SET
           events_count = EXCLUDED.events_count,
@@ -362,35 +601,14 @@ async function reconcileBiFromPublic() {
       `
     );
 
-    await client.query('DROP VIEW IF EXISTS bi.v_campaign_kpis');
-    await client.query(
-      `
-        CREATE VIEW bi.v_campaign_kpis AS
-        SELECT
-          f.day,
-          c.campaign_key,
-          c.campaign_name,
-          COALESCE(c.utm_source, '') AS utm_source,
-          COALESCE(c.utm_medium, '') AS utm_medium,
-          COALESCE(c.utm_campaign, '') AS utm_campaign,
-          COALESCE(c.utm_content, '') AS utm_content,
-          COALESCE(c.utm_term, '') AS utm_term,
-          f.events_count,
-          f.conversions_count,
-          f.leads_new_count,
-          f.leads_touch_count,
-          COALESCE(c.referrer, '') AS referrer,
-          COALESCE(c.source, '') AS source
-        FROM bi.fact_campaign_daily f
-        JOIN bi.dim_campaign c ON c.campaign_id = f.campaign_id
-      `
-    );
-    await client.query('GRANT SELECT ON bi.v_campaign_kpis TO looker_ro');
+    await ensureDashboardViews(client);
 
     await client.query('COMMIT');
 
     return {
       campaigns_upserted: campaignsResult.rowCount,
+      bridge_deleted: bridgeCleanupResult.rowCount,
+      bridge_upserted: bridgeResult.rowCount,
       facts_upserted: factsResult.rowCount
     };
   } catch (error) {

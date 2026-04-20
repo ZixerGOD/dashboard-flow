@@ -6,6 +6,10 @@ function cleanText(value) {
   return value.trim().replace(/\s+/g, ' ');
 }
 
+function cleanUpper(value) {
+  return cleanText(value).toUpperCase();
+}
+
 function cleanEmail(value) {
   if (typeof value !== 'string') {
     return '';
@@ -54,6 +58,7 @@ function cleanMaybeJsonValue(value) {
 
 module.exports = {
   cleanText,
+  cleanUpper,
   cleanEmail,
   cleanPhone,
   cleanMaybeJsonValue
