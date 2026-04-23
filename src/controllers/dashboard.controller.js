@@ -739,6 +739,12 @@ function renderLayout({ title, body, script = '' }) {
       font-weight: 700;
     }
 
+    .metric-card .metric-subvalue {
+      margin-top: 8px;
+      color: #4b5563;
+      font-weight: 600;
+    }
+
     .sparkline {
       width: 100%;
       height: 36px;
@@ -1262,8 +1268,8 @@ function renderDashboardPage({ username, filters, options }) {
         <section class="metrics" id="summary-metrics">
           <div class="metric-card"><span>Spend</span><strong>—</strong><small>MoM: —</small></div>
           <div class="metric-card"><span>Clicks</span><strong>—</strong><small>MoM: —</small></div>
-          <div class="metric-card"><span>Leads</span><strong>—</strong><small>MoM: —</small></div>
-          <div class="metric-card"><span>Ventas</span><strong>—</strong><small>MoM: —</small></div>
+          <div class="metric-card"><span>Leads</span><strong>—</strong><small class="metric-subvalue">Interno: —</small><small>MoM: —</small></div>
+          <div class="metric-card"><span>Conversiones</span><strong>—</strong><small class="metric-subvalue">Interno: —</small><small>MoM: —</small></div>
         </section>
 
         <section class="viz-row">
@@ -1356,7 +1362,7 @@ function renderDashboardPage({ username, filters, options }) {
         }).join(' ');
       }
 
-      function metricCard(label, value, trendPercent, points) {
+      function metricCard(label, value, trendPercent, points, secondaryText) {
         const trend = Number(trendPercent || 0);
         const trendClass = trend >= 0 ? 'up' : 'down';
         const trendLabel = (trend >= 0 ? '+' : '') + trend.toFixed(1) + '% MoM';
@@ -1366,6 +1372,7 @@ function renderDashboardPage({ username, filters, options }) {
           '<span>' + label + '</span>' +
           '<strong>' + value + '</strong>' +
           '<svg class="sparkline" viewBox="0 0 120 30" preserveAspectRatio="none" aria-hidden="true"><path d="' + path + '"></path></svg>' +
+          (secondaryText ? '<small class="metric-subvalue">' + secondaryText + '</small>' : '') +
           '<small class="metric-trend ' + trendClass + '">' + trendLabel + '</small>' +
         '</div>';
       }
@@ -1747,7 +1754,10 @@ function renderDashboardPage({ username, filters, options }) {
 
       function renderSummary(data, monthlyRows) {
         const container = document.getElementById('summary-metrics');
-        const leadsValue = useMetaApi ? Number(data.leads_api || 0) : Number(data.leads_new_count || 0);
+        const leadsMetaValue = Number(data.leads_api || data.conversions_api || 0);
+        const leadsInternalValue = Number(data.leads_new_count || 0);
+        const conversionsMetaValue = Number(data.conversions_api || 0);
+        const conversionsInternalValue = Number(data.conversions_web || 0);
 
         const monthlyGroups = (Array.isArray(monthlyRows) ? monthlyRows : []).reduce(function (acc, row) {
           const month = row.month_start ? String(row.month_start).slice(0, 7) : '';
@@ -1756,34 +1766,35 @@ function renderDashboardPage({ username, filters, options }) {
           }
 
           if (!acc[month]) {
-            acc[month] = { spend: 0, clicks: 0, leads: 0, ventas: 0 };
+            acc[month] = { spend: 0, clicks: 0, leads: 0, conversions_meta: 0, conversions_internal: 0 };
           }
 
           acc[month].spend += Number(row.spend || 0);
           acc[month].clicks += Number(row.clicks || 0);
           acc[month].leads += metricValueFromRow(row);
-          acc[month].ventas += Number(row.conversions_web || 0);
+          acc[month].conversions_meta += Number(row.conversions_api || 0);
+          acc[month].conversions_internal += Number(row.conversions_web || 0);
           return acc;
         }, {});
 
         const sortedMonths = Object.keys(monthlyGroups).sort();
         const currentMonth = sortedMonths[sortedMonths.length - 1];
         const previousMonth = sortedMonths[sortedMonths.length - 2];
-        const current = currentMonth ? monthlyGroups[currentMonth] : { spend: data.spend || 0, clicks: data.clicks || 0, leads: leadsValue, ventas: data.conversions_web || 0 };
-        const previous = previousMonth ? monthlyGroups[previousMonth] : { spend: 0, clicks: 0, leads: 0, ventas: 0 };
+        const current = currentMonth ? monthlyGroups[currentMonth] : { spend: data.spend || 0, clicks: data.clicks || 0, leads: leadsMetaValue, conversions_meta: conversionsMetaValue, conversions_internal: conversionsInternalValue };
+        const previous = previousMonth ? monthlyGroups[previousMonth] : { spend: 0, clicks: 0, leads: 0, conversions_meta: 0, conversions_internal: 0 };
 
         const sparkSeries = {
           spend: sortedMonths.map(function (month) { return monthlyGroups[month].spend; }),
           clicks: sortedMonths.map(function (month) { return monthlyGroups[month].clicks; }),
           leads: sortedMonths.map(function (month) { return monthlyGroups[month].leads; }),
-          ventas: sortedMonths.map(function (month) { return monthlyGroups[month].ventas; })
+          conversions: sortedMonths.map(function (month) { return monthlyGroups[month].conversions_meta; })
         };
 
         container.innerHTML = [
           metricCard('Spend', money(data.spend), calcTrendPercent(current.spend, previous.spend), sparkSeries.spend),
           metricCard('Clicks', number(data.clicks), calcTrendPercent(current.clicks, previous.clicks), sparkSeries.clicks),
-          metricCard('Leads', number(leadsValue), calcTrendPercent(current.leads, previous.leads), sparkSeries.leads),
-          metricCard('Ventas', number(data.conversions_web), calcTrendPercent(current.ventas, previous.ventas), sparkSeries.ventas)
+          metricCard('Leads', number(leadsMetaValue), calcTrendPercent(current.leads, previous.leads), sparkSeries.leads, 'Interno: ' + number(leadsInternalValue)),
+          metricCard('Conversiones', number(conversionsMetaValue), calcTrendPercent(current.conversions_meta, previous.conversions_meta), sparkSeries.conversions, 'Interno: ' + number(conversionsInternalValue))
         ].join('');
       }
 

@@ -1,6 +1,17 @@
 const { getPool } = require('../config/database');
 const { cleanUpper } = require('../utils/sanitize');
 
+let ensuredSiteEventsSchema = false;
+
+async function ensureSiteEventsSchema(client) {
+  if (ensuredSiteEventsSchema) {
+    return;
+  }
+
+  await client.query('ALTER TABLE site_events ADD COLUMN IF NOT EXISTS utm_id varchar(255)');
+  ensuredSiteEventsSchema = true;
+}
+
 /**
  * Saves a site event (anonymous conversion) to the database.
  * @param {Object} event The mapped site event object.
@@ -26,6 +37,8 @@ async function saveEvent(event) {
   } = event;
 
   const normalizedPlatform = String(platform || event.source || '').trim().toUpperCase() || null;
+
+  await ensureSiteEventsSchema(pool);
 
   const query = `
     INSERT INTO site_events (

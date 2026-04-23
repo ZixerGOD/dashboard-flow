@@ -78,8 +78,7 @@
         utm_medium: upper(dataset.defaultUtmMedium || dataset.utmMediumDefault || 'TRAFICO'),
         utm_campaign: upper(dataset.defaultUtmCampaign || dataset.utmCampaignDefault || 'UEES_GRADO_EC'),
         utm_content: upper(dataset.defaultUtmContent || dataset.utmContentDefault || 'CAMP_LANDINGS_ABR26'),
-        utm_term: upper(dataset.defaultUtmTerm || dataset.utmTermDefault || 'ORGANICO'),
-        utm_id: upper(dataset.defaultUtmId || dataset.utmIdDefault || 'ORGANICO')
+        utm_term: upper(dataset.defaultUtmTerm || dataset.utmTermDefault || 'ORGANICO')
       }
     };
   }
@@ -346,7 +345,10 @@
         payload.utm_campaign = config.defaultUtm.utm_campaign;
         payload.utm_content = config.defaultUtm.utm_content;
         payload.utm_term = config.defaultUtm.utm_term;
-        payload.utm_id = config.defaultUtm.utm_id;
+      }
+
+      if (!clean(payload.utm_id)) {
+        payload.utm_id = config.variant === 'wa' ? 'BTN_FORM_WS' : 'BTN_FORM_WEB';
       }
 
       try {
