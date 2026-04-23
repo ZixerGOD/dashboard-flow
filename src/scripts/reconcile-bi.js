@@ -3,13 +3,13 @@ const { getPool } = require('../config/database');
 
 async function main() {
   const result = await reconcileBiFromPublic();
-  console.log('BI reconcile result:');
+  console.log('BI reconciliation result:');
   console.log(JSON.stringify(result, null, 2));
 }
 
 main()
   .catch((error) => {
-    console.error('BI reconcile failed:', error.message);
+    console.error('BI reconciliation failed:', error.message);
     process.exitCode = 1;
   })
   .finally(async () => {

@@ -32,9 +32,34 @@ function safeEqual(left, right) {
   return crypto.timingSafeEqual(leftBuffer, rightBuffer);
 }
 
+function isDashboardAuthConfigured() {
+  return Boolean(
+    String(env.DASHBOARD_USERNAME || '').trim()
+    && String(env.DASHBOARD_PASSWORD || '').trim()
+    && String(env.DASHBOARD_AUTH_SECRET || '').trim()
+  );
+}
+
 function getExpectedToken() {
+  if (!isDashboardAuthConfigured()) {
+    return '';
+  }
+
   const credentials = `${env.DASHBOARD_USERNAME}:${env.DASHBOARD_PASSWORD}`;
   return crypto.createHmac('sha256', env.DASHBOARD_AUTH_SECRET).update(credentials).digest('hex');
+}
+
+function toHash(value) {
+  return crypto.createHash('sha256').update(String(value || '')).digest('hex');
+}
+
+function verifyDashboardCredentials(username, password) {
+  if (!isDashboardAuthConfigured()) {
+    return false;
+  }
+
+  return safeEqual(toHash(username), toHash(env.DASHBOARD_USERNAME))
+    && safeEqual(toHash(password), toHash(env.DASHBOARD_PASSWORD));
 }
 
 function getAuthToken(req) {
@@ -43,14 +68,27 @@ function getAuthToken(req) {
 }
 
 function isAuthenticated(req) {
+  if (!isDashboardAuthConfigured()) {
+    return false;
+  }
+
   return safeEqual(getAuthToken(req), getExpectedToken());
 }
 
-function requireDashboardAuth(req, res, next) {
-  if (isAuthenticated(req)) {
-    return next();
+function isSecureRequest(req) {
+  if (req.secure) {
+    return true;
   }
 
+  const forwardedProto = String(req.get('x-forwarded-proto') || '').toLowerCase();
+  if (forwardedProto.includes('https')) {
+    return true;
+  }
+
+  return String(env.NODE_ENV || '').toLowerCase() === 'production';
+}
+
+function unauthorizedResponse(req, res) {
   if (req.originalUrl.startsWith('/api/')) {
     return res.status(401).json({ ok: false, error: 'Unauthorized' });
   }
@@ -58,11 +96,27 @@ function requireDashboardAuth(req, res, next) {
   return res.redirect('/login');
 }
 
-function attachDashboardAuthCookie(res) {
+function requireDashboardAuth(req, res, next) {
+  if (!isDashboardAuthConfigured()) {
+    if (req.originalUrl.startsWith('/api/')) {
+      return res.status(503).json({ ok: false, error: 'Dashboard auth is not configured' });
+    }
+
+    return res.status(503).send('Dashboard auth is not configured');
+  }
+
+  if (isAuthenticated(req)) {
+    return next();
+  }
+
+  return unauthorizedResponse(req, res);
+}
+
+function attachDashboardAuthCookie(req, res) {
   res.cookie(COOKIE_NAME, getExpectedToken(), {
     httpOnly: true,
-    sameSite: 'lax',
-    secure: false,
+    sameSite: 'strict',
+    secure: isSecureRequest(req),
     path: '/',
     maxAge: 8 * 60 * 60 * 1000
   });
@@ -76,6 +130,8 @@ module.exports = {
   COOKIE_NAME,
   attachDashboardAuthCookie,
   clearDashboardAuthCookie,
+  isDashboardAuthConfigured,
   isAuthenticated,
-  requireDashboardAuth
+  requireDashboardAuth,
+  verifyDashboardCredentials
 };

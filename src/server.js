@@ -3,9 +3,12 @@ const logger = require('./config/logger');
 const { env } = require('./config/env');
 const { getPool } = require('./config/database');
 const biMetricsRepository = require('./repositories/bi_metrics.repository');
+const { startDailyPaidInsightsRefreshScheduler } = require('./services/paidInsightsRefresh.service');
 
 async function start() {
   const pool = getPool();
+  let stopPaidInsightsScheduler = null;
+  let isShuttingDown = false;
 
   if (pool) {
     await pool.query('SELECT 1');
@@ -23,7 +26,20 @@ async function start() {
     logger.info({ port: env.PORT }, 'server started');
   });
 
+  stopPaidInsightsScheduler = startDailyPaidInsightsRefreshScheduler();
+
   const shutdown = () => {
+    if (isShuttingDown) {
+      return;
+    }
+
+    isShuttingDown = true;
+
+    if (stopPaidInsightsScheduler) {
+      stopPaidInsightsScheduler();
+      stopPaidInsightsScheduler = null;
+    }
+
     server.close(() => {
       if (pool) {
         pool.end().finally(() => process.exit(0));

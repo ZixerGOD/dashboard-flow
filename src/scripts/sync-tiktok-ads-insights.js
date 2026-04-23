@@ -9,7 +9,7 @@ async function run() {
   const advertiserId = process.env.TIKTOK_ADVERTISER_ID || '';
 
   if (!token || !advertiserId) {
-    throw new Error('Missing TIKTOK_ACCESS_TOKEN or TIKTOK_ADVERTISER_ID env vars');
+    throw new Error('Missing TIKTOK_ACCESS_TOKEN or TIKTOK_ADVERTISER_ID environment variables');
   }
 
   console.log(

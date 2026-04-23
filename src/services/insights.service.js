@@ -191,6 +191,7 @@ function mapSiteEventRow(row) {
       utm_campaign: stripLabeledValue(row.utm_campaign || ''),
       utm_content: stripLabeledValue(row.utm_content || ''),
       utm_term: stripLabeledValue(row.utm_term || ''),
+      utm_id: stripLabeledValue(row.utm_id || ''),
       referrer: stripLabeledValue(row.referrer || row.referrer_clean || row.referrer_full || row.referrer_url || ''),
       title: stripLabeledValue(row.title || '')
     }
@@ -246,7 +247,14 @@ async function processInsightsPayload(payload) {
       const contact = mapContactRow(row);
 
       const siteEventResult = await siteEventRepository.saveEvent(siteEvent);
-      const contactResult = await contactRepository.upsertLead(contact);
+      const contactResult = await contactRepository.upsertLead(contact, {
+        utm_source: siteEvent?.metadata?.utm_source || '',
+        utm_medium: siteEvent?.metadata?.utm_medium || '',
+        utm_campaign: siteEvent?.metadata?.utm_campaign || '',
+        utm_content: siteEvent?.metadata?.utm_content || '',
+        utm_term: siteEvent?.metadata?.utm_term || '',
+        utm_id: siteEvent?.metadata?.utm_id || ''
+      });
 
       try {
         await leadEventMatchRepository.createMatch({
@@ -291,6 +299,5 @@ async function processInsightsPayload(payload) {
 }
 
 module.exports = {
-  processInsightsPayload,
-  normalizeCampaignKey
+  processInsightsPayload
 };

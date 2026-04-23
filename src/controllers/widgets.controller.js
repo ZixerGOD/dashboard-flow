@@ -1,6 +1,8 @@
 const path = require('path');
 const { sendSuccess, createHttpError } = require('../utils/response');
 const insightsService = require('../services/insights.service');
+const crmRepository = require('../repositories/crm.repository');
+const logger = require('../config/logger');
 
 const leadScriptPath = path.resolve(__dirname, '../widgets/lead.js');
 
@@ -10,7 +12,7 @@ function normalizePlatform(value) {
 
 function serveLeadScript(req, res) {
   res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
-  res.setHeader('Cache-Control', 'public, max-age=300');
+  res.setHeader('Cache-Control', 'no-cache, must-revalidate');
   return res.sendFile(leadScriptPath);
 }
 
@@ -35,7 +37,42 @@ async function submitLead(req, res, next) {
     }
 
     const result = await insightsService.processInsightsPayload(payload);
-    return sendSuccess(res, result, 200);
+
+    let crmForwarding = {
+      ok: false,
+      skipped: false,
+      error: null
+    };
+
+    try {
+      const crmResult = await crmRepository.submitLead(payload);
+      crmForwarding = {
+        ok: !crmResult?.skipped,
+        skipped: Boolean(crmResult?.skipped),
+        status_code: crmResult?.status_code || null,
+        error: null,
+        response: crmResult?.response ?? null
+      };
+    } catch (crmError) {
+      crmForwarding = {
+        ok: false,
+        skipped: false,
+        status_code: crmError?.status_code || crmError?.response?.status || null,
+        error: crmError?.message || 'crm_forward_failed',
+        response: crmError?.response_data ?? crmError?.response?.data ?? null
+      };
+
+      logger.error({ err: crmError }, 'Failed forwarding widget lead to CRM endpoint');
+    }
+
+    return sendSuccess(
+      res,
+      {
+        ...result,
+        crm_forwarding: crmForwarding
+      },
+      200
+    );
   } catch (error) {
     return next(error);
   }

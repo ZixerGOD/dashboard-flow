@@ -42,6 +42,7 @@ model SiteEvent {
   utm_campaign  String?  @db.VarChar(255)
   utm_content   String?  @db.VarChar(255)
   utm_term      String?  @db.VarChar(255)
+  utm_id        String?  @db.VarChar(255)
   referrer      String?  @db.Text
   title         String?  @db.VarChar(255)
   timestamp     DateTime @default(now()) @db.Timestamptz(6)

@@ -40,16 +40,17 @@ const env = {
   LOG_LEVEL: optional('LOG_LEVEL', 'info'),
   APP_PUBLIC_URL: optional('APP_PUBLIC_URL', 'https://webservices.devmaniacs.net'),
   CORS_ALLOWED_ORIGINS: optional('CORS_ALLOWED_ORIGINS', '*'),
-  REQUEST_TIMEOUT_MS: optionalInt('REQUEST_TIMEOUT_MS', 10000),
   SERVICE_NAME: optional('SERVICE_NAME', 'uees-insights-middleware'),
   CRM_BASE_URL: optional('CRM_BASE_URL', 'https://webservices.uees.edu.ec'),
   CRM_ENDPOINT: optional('CRM_ENDPOINT', '/contactcenter/getData/getLeadsByCampaign'),
   CRM_CAMPAIGN_QUERY_PARAM: optional('CRM_CAMPAIGN_QUERY_PARAM', 'c'),
   CRM_REQUEST_TIMEOUT_MS: optionalInt('CRM_REQUEST_TIMEOUT_MS', 30000),
+  CRM_LEAD_POST_ENABLED: optionalBool('CRM_LEAD_POST_ENABLED', true),
+  CRM_LEAD_POST_ENDPOINT: optional('CRM_LEAD_POST_ENDPOINT', '/api-mas/'),
   MAKE_WEBHOOK_TOKEN: optional('MAKE_WEBHOOK_TOKEN', ''),
-  DASHBOARD_USERNAME: optional('DASHBOARD_USERNAME', 'admin'),
-  DASHBOARD_PASSWORD: optional('DASHBOARD_PASSWORD', 'UEES2026#'),
-  DASHBOARD_AUTH_SECRET: optional('DASHBOARD_AUTH_SECRET', 'c2zUcbcj5W6Q8lF3kI9nqjvXyYl2r7'),
+  DASHBOARD_USERNAME: optional('DASHBOARD_USERNAME', ''),
+  DASHBOARD_PASSWORD: optional('DASHBOARD_PASSWORD', ''),
+  DASHBOARD_AUTH_SECRET: optional('DASHBOARD_AUTH_SECRET', ''),
   GOOGLE_ADS_CLIENT_ID: optional('GOOGLE_ADS_CLIENT_ID', ''),
   GOOGLE_ADS_CLIENT_SECRET: optional('GOOGLE_ADS_CLIENT_SECRET', ''),
   GOOGLE_ADS_REDIRECT_PATH: optional('GOOGLE_ADS_REDIRECT_PATH', '/oauth/google-ads/callback'),
@@ -64,10 +65,11 @@ const env = {
   GOOGLE_ADS_API_VERSION: optional('GOOGLE_ADS_API_VERSION', 'v20'),
   META_ACCESS_TOKEN: optional('META_ACCESS_TOKEN', ''),
   META_AD_ACCOUNT_ID: optional('META_AD_ACCOUNT_ID', ''),
+  META_AD_ACCOUNT_IDS: optional('META_AD_ACCOUNT_IDS', ''),
   META_GRAPH_VERSION: optional('META_GRAPH_VERSION', 'v20.0'),
+  META_ATTRIBUTION_WINDOWS: optional('META_ATTRIBUTION_WINDOWS', ''),
   TIKTOK_ACCESS_TOKEN: optional('TIKTOK_ACCESS_TOKEN', ''),
-  TIKTOK_ADVERTISER_ID: optional('TIKTOK_ADVERTISER_ID', ''),
-  TIKTOK_API_BASE_URL: optional('TIKTOK_API_BASE_URL', 'https://business-api.tiktok.com/open_api/v1.3')
+  TIKTOK_ADVERTISER_ID: optional('TIKTOK_ADVERTISER_ID', '')
 };
 
 module.exports = { env };

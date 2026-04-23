@@ -4,6 +4,49 @@
 
 Middleware for Make.com insights ingestion plus CRM matching for dashboard analytics.
 
+## Current Project Context (Apr 2026)
+
+Use this section as context when asking another AI to generate UI/UX prompts or implementation plans.
+
+### Stack and runtime
+
+- Single Node.js package using CommonJS + Express.
+- Main runtime entry: `src/server.js`; app wiring in `src/app.js`.
+- Prisma is used for schema/migrations/studio, but runtime analytics queries are mostly raw SQL via `src/repositories/*.repository.js`.
+- Dashboard HTML/CSS/JS is server-rendered inline from `src/controllers/dashboard.controller.js`.
+
+### Dashboard behavior and constraints
+
+- Dashboard/API routes are protected with cookie auth (`requireDashboardAuth`).
+- Analytics filters are DB-first (no live API call for every filter interaction).
+- Manual refresh is available in UI; scheduled sync remains the source for regular updates.
+- Platform behavior:
+  - `META` includes FB + IG semantics.
+  - Legacy rows with `platform='META'` are still considered where needed.
+
+### Current dashboard UI state
+
+- Visual direction is minimalist, clean, and high-contrast, with soft white cards and neutral background.
+- Global shell is visually wide; main content is centered in a focus lane at approximately 80% viewport width.
+- Inside the focus lane:
+  - Filters card
+  - Summary metric cards
+  - Monthly summary accordion (open by default)
+  - Daily summary accordion (open by default)
+- Monthly and daily sections include nested campaign accordions.
+- Campaign accordion headers show campaign name only (no spend/records text in closed state).
+- Current palette direction keeps the existing project colors (brand burgundy + warm accents), while layout follows a cleaner editorial style.
+
+### Future UI module (planned)
+
+- Add `Actionable Insights` as a dedicated section above summaries.
+- Each insight should include: issue, likely cause, suggested action, and priority/impact.
+
+### Visual reference notes
+
+- A strong external style reference image is being used outside this repo.
+- Goal for future iterations: keep the same clean line and visual hierarchy shown in that reference while preserving current dashboard data flows and filters.
+
 ## Setup
 
 1. Copy `.env.example` to `.env` and fill the required values.

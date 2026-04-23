@@ -67,6 +67,11 @@ async function ensureMonthlyTargets(client) {
 }
 
 async function ensureDashboardViews(client) {
+  await client.query('ALTER TABLE bi.fact_paid_campaign_daily ADD COLUMN IF NOT EXISTS platform varchar(20)');
+  await client.query(`UPDATE bi.fact_paid_campaign_daily SET platform = COALESCE(NULLIF(platform, ''), source) WHERE platform IS NULL OR platform = ''`);
+
+  await client.query('ALTER TABLE bi.fact_paid_campaign_daily ADD COLUMN IF NOT EXISTS provider_account_name varchar(255)');
+
   await client.query('DROP VIEW IF EXISTS bi.v_dashboard_monthly');
   await client.query('DROP VIEW IF EXISTS bi.v_dashboard_daily');
   await client.query('DROP VIEW IF EXISTS bi.v_campaign_marketing_funnel');
@@ -79,6 +84,7 @@ async function ensureDashboardViews(client) {
         SELECT
           day,
           UPPER(COALESCE(source, '')) AS source,
+          UPPER(COALESCE(platform, source, '')) AS platform,
           campaign_key,
           campaign_name,
           currency_code,
@@ -88,13 +94,15 @@ async function ensureDashboardViews(client) {
           reach,
           conversions AS conversions_api,
           provider_campaign_id,
-          provider_account_id
+          provider_account_id,
+          provider_account_name
         FROM bi.fact_paid_campaign_daily
       ),
       leads AS (
         SELECT
           f.day,
           UPPER(COALESCE(c.source, '')) AS source,
+          UPPER(COALESCE(c.source, '')) AS platform,
           c.campaign_key,
           c.campaign_name,
           SUM(f.events_count)::bigint AS events_count,
@@ -103,14 +111,17 @@ async function ensureDashboardViews(client) {
           SUM(f.leads_touch_count)::bigint AS leads_touch_count
         FROM bi.fact_campaign_daily f
         JOIN bi.dim_campaign c ON c.campaign_id = f.campaign_id
-        GROUP BY f.day, UPPER(COALESCE(c.source, '')), c.campaign_key, c.campaign_name
+        GROUP BY f.day, UPPER(COALESCE(c.source, '')), UPPER(COALESCE(c.source, '')), c.campaign_key, c.campaign_name
       )
       SELECT
         COALESCE(p.day, l.day) AS day,
         DATE_TRUNC('month', COALESCE(p.day, l.day))::date AS month_start,
         UPPER(COALESCE(NULLIF(p.source, ''), NULLIF(l.source, ''), '')) AS source,
+        UPPER(COALESCE(NULLIF(p.platform, ''), NULLIF(l.platform, ''), NULLIF(p.source, ''), NULLIF(l.source, ''), '')) AS platform,
         COALESCE(NULLIF(p.campaign_key, ''), NULLIF(l.campaign_key, '')) AS campaign_key,
         COALESCE(NULLIF(p.campaign_name, ''), NULLIF(l.campaign_name, '')) AS campaign_name,
+        COALESCE(p.provider_account_id, '') AS provider_account_id,
+        COALESCE(p.provider_account_name, '') AS provider_account_name,
         COALESCE(p.currency_code, '') AS currency_code,
         COALESCE(p.spend, 0::numeric) AS spend,
         COALESCE(p.clicks, 0::bigint) AS clicks,
@@ -147,8 +158,11 @@ async function ensureDashboardViews(client) {
       SELECT
         DATE_TRUNC('month', day)::date AS month_start,
         source,
+        platform,
         campaign_key,
         campaign_name,
+        provider_account_id,
+        provider_account_name,
         currency_code,
         SUM(spend)::numeric(18,6) AS spend,
         SUM(clicks)::bigint AS clicks,
@@ -169,7 +183,7 @@ async function ensureDashboardViews(client) {
         CASE WHEN MAX(leads_target) > 0 THEN ROUND((SUM(leads_new_count)::numeric / NULLIF(MAX(leads_target), 0)) * 100, 2) ELSE NULL END AS lead_completion_pct,
         CASE WHEN MAX(sales_target) > 0 THEN ROUND((SUM(conversions_web)::numeric / NULLIF(MAX(sales_target), 0)) * 100, 2) ELSE NULL END AS sales_completion_pct
       FROM bi.v_dashboard_daily
-      GROUP BY DATE_TRUNC('month', day)::date, source, campaign_key, campaign_name, currency_code
+      GROUP BY DATE_TRUNC('month', day)::date, source, platform, campaign_key, campaign_name, provider_account_id, provider_account_name, currency_code
     `
   );
 }

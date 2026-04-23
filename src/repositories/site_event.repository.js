@@ -41,11 +41,12 @@ async function saveEvent(event) {
       utm_campaign,
       utm_content,
       utm_term,
+      utm_id,
       referrer,
       title,
       timestamp
     ) VALUES (
-      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
     )
     RETURNING id
   `;
@@ -63,6 +64,7 @@ async function saveEvent(event) {
     cleanUpper(metadata?.utm_campaign) || null,
     cleanUpper(metadata?.utm_content) || null,
     cleanUpper(metadata?.utm_term) || null,
+    cleanUpper(metadata?.utm_id) || null,
     cleanUpper(metadata?.referrer) || null,
     cleanUpper(metadata?.title) || null,
     timestamp || new Date().toISOString()
