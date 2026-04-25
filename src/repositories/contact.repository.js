@@ -71,6 +71,7 @@ async function upsertLead(contact, context = {}) {
   const modalidadUpper = cleanUpper(contact.modalidad);
   const nivelUpper = cleanUpper(contact.nivel);
   const ciudadUpper = cleanUpper(contact.ciudad);
+  const paisUpper = cleanUpper(contact.pais || contact.country);
   const mecanismoIngresoUpper = cleanUpper(contact.mecanismo_ingreso || contact.mecanismo);
   const comoTeContactamosUpper = cleanUpper(contact.como_te_contactamos);
   const franjaHorariaUpper = cleanUpper(contact.franja_horaria);
@@ -116,6 +117,7 @@ async function upsertLead(contact, context = {}) {
     modalidadUpper || null,
     nivelUpper || null,
     ciudadUpper || null,
+    paisUpper || null,
     mecanismoIngresoUpper || null,
     comoTeContactamosUpper || null,
     franjaHorariaUpper || null,
@@ -151,12 +153,13 @@ async function upsertLead(contact, context = {}) {
             modalidad,
             nivel,
             ciudad,
+            pais,
             mecanismo_ingreso,
             como_te_contactamos,
             franja_horaria,
             programa,
             updated_at
-          ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,now())
+          ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,now())
           RETURNING id, lead_code
         `,
         [
@@ -169,6 +172,7 @@ async function upsertLead(contact, context = {}) {
           modalidadUpper || null,
           nivelUpper || null,
           ciudadUpper || null,
+          paisUpper || null,
           mecanismoIngresoUpper || null,
           comoTeContactamosUpper || null,
           franjaHorariaUpper || null,
@@ -196,12 +200,13 @@ async function upsertLead(contact, context = {}) {
           modalidad = $7,
           nivel = $8,
           ciudad = $9,
-          mecanismo_ingreso = $10,
-          como_te_contactamos = $11,
-          franja_horaria = $12,
-          programa = $13,
+          pais = $10,
+          mecanismo_ingreso = $11,
+          como_te_contactamos = $12,
+          franja_horaria = $13,
+          programa = $14,
           updated_at = now()
-        WHERE id = $14
+        WHERE id = $15
       `,
       [...params, id]
     );
@@ -221,12 +226,13 @@ async function upsertLead(contact, context = {}) {
         modalidad,
         nivel,
         ciudad,
+        pais,
         mecanismo_ingreso,
         como_te_contactamos,
         franja_horaria,
         programa,
         updated_at
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,now())
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,now())
       RETURNING id, lead_code
     `,
     [
@@ -239,6 +245,7 @@ async function upsertLead(contact, context = {}) {
       modalidadUpper || null,
       nivelUpper || null,
       ciudadUpper || null,
+      paisUpper || null,
       mecanismoIngresoUpper || null,
       comoTeContactamosUpper || null,
       franjaHorariaUpper || null,

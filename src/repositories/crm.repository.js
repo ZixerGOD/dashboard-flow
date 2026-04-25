@@ -82,25 +82,41 @@ async function getLeadsByCampaign(campaignKey) {
 }
 
 function normalizeCrmLeadPayload(payload = {}) {
+  const utmSource = String(payload.utm_source || '').trim();
+  const utmMedium = String(payload.utm_medium || '').trim();
+  const utmCampaign = String(payload.utm_campaign || '').trim();
+  const utmContent = String(payload.utm_content || '').trim();
+  const utmTerm = String(payload.utm_term || '').trim();
+  const utmId = String(payload.utm_id || '').trim();
+  const leadOrigin = String(payload.origenLead || payload.procedencia || payload.platform || 'LANDING').trim();
+
   return {
     nombre: String(payload.nombre || '').trim(),
     apellido: String(payload.apellido || '').trim(),
     celular: String(payload.celular || '').trim(),
     correo: String(payload.correo || '').trim(),
     modalidad: String(payload.modalidad || '').trim(),
-    comentario: String(payload.comentario || payload.mecanismo || '').trim(),
-    procedencia: String(payload.procedencia || payload.platform || '').trim(),
+    comentario: String(payload.comentario || payload.mecanismo || payload.mecanismo_ingreso || '').trim(),
+    procedencia: leadOrigin,
+    origenLead: leadOrigin,
     nivel: String(payload.nivel || '').trim(),
     cedula: String(payload.cedula || '').trim(),
-    utm_campaign: String(payload.utm_campaign || '').trim(),
+    utm_campaign: utmCampaign,
     canal_contacto: String(payload.canal_contacto || payload.como_te_contactamos || '').trim(),
     franja_horaria: String(payload.franja_horaria || '').trim(),
     ciudad: String(payload.ciudad || '').trim(),
-    utm_source: String(payload.utm_source || '').trim(),
-    utm_medium: String(payload.utm_medium || '').trim(),
-    utm_content: String(payload.utm_content || '').trim(),
-    utm_term: String(payload.utm_term || '').trim(),
-    utm_id: String(payload.utm_id || '').trim(),
+    pais: String(payload.pais || payload.country || '').trim(),
+    utm_source: utmSource,
+    utm_medium: utmMedium,
+    utm_content: utmContent,
+    utm_term: utmTerm,
+    utm_id: utmId,
+    utmSource,
+    utmMedium,
+    utmCampaign,
+    utmContent,
+    utmTerm,
+    utmId,
     programa: String(payload.programa || payload.campaign_name || '').trim()
   };
 }

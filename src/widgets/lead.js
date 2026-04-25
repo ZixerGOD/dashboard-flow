@@ -48,8 +48,11 @@
     var baseUrl = dataset.baseUrl ? clean(dataset.baseUrl) : src.origin;
     var platform = clean(dataset.platform || dataset.source || 'landing').toUpperCase();
 
+    var variant = clean(dataset.variant || 'full').toLowerCase();
+    var defaultUtmSource = 'FORM_WEB';
+
     return {
-      variant: clean(dataset.variant || 'full').toLowerCase(),
+      variant: variant,
       programa: clean(
         dataset.programa ||
         dataset.program ||
@@ -74,7 +77,7 @@
       whatsappNumber: clean(dataset.whatsapp || ''),
       successMessage: clean(dataset.successMessage || 'Enviado correctamente'),
       defaultUtm: {
-        utm_source: upper(dataset.defaultUtmSource || dataset.utmSourceDefault || 'FORM_WEB'),
+        utm_source: upper(dataset.defaultUtmSource || dataset.utmSourceDefault || defaultUtmSource),
         utm_medium: upper(dataset.defaultUtmMedium || dataset.utmMediumDefault || 'TRAFICO'),
         utm_campaign: upper(dataset.defaultUtmCampaign || dataset.utmCampaignDefault || 'UEES_GRADO_EC'),
         utm_content: upper(dataset.defaultUtmContent || dataset.utmContentDefault || 'CAMP_LANDINGS_ABR26'),
@@ -169,7 +172,7 @@
       '      <div><label>Apellido</label><input name="apellido" required /></div>' +
       '      <div><label>Correo</label><input name="correo" type="email" required /></div>' +
       '      <div><label>Teléfono</label><input name="celular" required /></div>' +
-      '      <div class="full"><label>Cédula</label><input name="cedula" required /></div>' +
+      '      <div class="full"><label>Documento de identificación</label><input name="cedula" required /></div>' +
       '      <div class="full"><label>Ciudad</label><input name="ciudad" required /></div>' +
       '      <div><label>Mecanismo ingreso</label><select name="mecanismo" required><option value="">Selecciona</option><option value="Carrera Completa">Carrera Completa</option><option value="Homologacion de estudios">Homologacion de estudios</option><option value="Validacion de conocimientos / estudios de mas de 10 años">Validacion de conocimientos / estudios de mas de 10 anos</option><option value="Validacion de ejercicio profesional">Validacion de ejercicio profesional</option></select></div>' +
       '      <div><label>Como te contactamos</label><select name="como_te_contactamos" required><option value="">Selecciona</option><option value="whatsapp">WhatsApp</option><option value="llamada">Llamada</option><option value="correo">Correo</option></select></div>' +
@@ -198,7 +201,7 @@
       '      <h4>Déjanos tus datos</h4>' +
       '      <input type="text" name="nombre" placeholder="Nombre" required />' +
       '      <input type="text" name="apellido" placeholder="Apellido" required />' +
-      '      <input type="text" name="cedula" placeholder="Cédula" required />' +
+      '      <input type="text" name="cedula" placeholder="Documento de identificación" required />' +
       '      <input type="email" name="correo" placeholder="Correo" required />' +
       '      <input type="tel" name="telefono" placeholder="Teléfono" required />' +
       '      <input type="hidden" name="programa" value="' + escapeAttr(config.programa) + '" />' +
@@ -228,7 +231,7 @@
     return [
       'Hola, soy ' + (data.nombre || '') + ' ' + (data.apellido || ''),
       'Programa: ' + (data.programa || ''),
-      'Cédula: ' + (data.cedula || ''),
+      'Documento de identificación: ' + (data.cedula || ''),
       'Correo: ' + (data.correo || ''),
       'Teléfono: ' + (data.celular || ''),
       'Modalidad: ' + (data.modalidad || ''),
@@ -348,7 +351,7 @@
       }
 
       if (!clean(payload.utm_id)) {
-        payload.utm_id = config.variant === 'wa' ? 'BTN_FORM_WS' : 'BTN_FORM_WEB';
+        payload.utm_id = 'BTN_FORM_WEB';
       }
 
       try {

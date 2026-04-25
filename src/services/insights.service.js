@@ -213,6 +213,7 @@ function mapContactRow(row) {
     modalidad: stripLabeledValue(row.modalidad || ''),
     nivel: stripLabeledValue(row.nivel || ''),
     ciudad: stripLabeledValue(row.ciudad || row.city || ''),
+    pais: stripLabeledValue(row.pais || row.country || ''),
     mecanismo_ingreso: stripLabeledValue(row.mecanismo || row.mecanismo_ingreso || ''),
     como_te_contactamos: stripLabeledValue(row.como_te_contactamos || ''),
     franja_horaria: stripLabeledValue(row.franja_horaria || ''),
@@ -222,7 +223,7 @@ function mapContactRow(row) {
 
 function isLeadFormPayload(row) {
   return Boolean(
-    cleanMaybeJsonValue(row.nombre || row.apellido || row.correo || row.celular || row.programa || row.modalidad || row.nivel || row.ciudad || row.mecanismo || row.como_te_contactamos || row.franja_horaria)
+    cleanMaybeJsonValue(row.nombre || row.apellido || row.correo || row.celular || row.programa || row.modalidad || row.nivel || row.ciudad || row.pais || row.mecanismo || row.mecanismo_ingreso || row.como_te_contactamos || row.franja_horaria)
   );
 }
 

@@ -19,6 +19,7 @@ model Contact {
   modalidad          String?   @db.VarChar(100)
   nivel              String?   @db.VarChar(100)
   ciudad             String?   @db.VarChar(100)
+  pais               String?   @db.VarChar(100)
   mecanismo_ingreso  String?   @db.VarChar(150)
   como_te_contactamos String?  @db.VarChar(150)
   franja_horaria     String?   @db.VarChar(100)
