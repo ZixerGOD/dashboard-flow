@@ -271,7 +271,7 @@
     style.id = 'dm-lead-stepper-style';
     style.textContent = '' +
       '.dm-widget-host .dm-stepper{font-family:Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;color:#111827;width:100%;max-width:760px;box-sizing:border-box;background:#fff;padding:1px;border:1px solid #d0d5dd;border-radius:16px;box-shadow:0 10px 24px rgba(16,24,40,.08);}' +
-      '.dm-widget-host .dm-stepper-form{background:#fff;border-radius:15px;padding:28px;}' +
+      '.dm-widget-host .dm-stepper-form{background:#fff;border-radius:15px;padding:22px;}' +
       '.dm-widget-host .dm-stepper,.dm-widget-host .dm-stepper *{font-family:Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif !important;text-transform:none !important;letter-spacing:normal !important;}' +
       '.dm-widget-host .dm-stepper h2,.dm-widget-host .dm-stepper h3,.dm-widget-host .dm-stepper h4,.dm-widget-host .dm-stepper p,.dm-widget-host .dm-stepper label,.dm-widget-host .dm-stepper span,.dm-widget-host .dm-stepper strong,.dm-widget-host .dm-stepper small,.dm-widget-host .dm-stepper input,.dm-widget-host .dm-stepper select,.dm-widget-host .dm-stepper button{font-style:normal !important;}' +
       '.dm-widget-host .dm-wa-card,.dm-widget-host .dm-wa-card *{font-family:Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif !important;text-transform:none !important;letter-spacing:normal !important;}' +
@@ -279,16 +279,20 @@
       '.dm-widget-host .dm-form-header{text-align:center;margin-bottom:20px;}' +
       '.dm-widget-host .dm-form-header h2{margin:0 0 8px;font-size:30px;line-height:1.1;font-weight:700;color:#111827;}' +
       '.dm-widget-host .dm-form-header p{margin:0;color:#6b7280 !important;font-size:13px;}' +
-      '.dm-widget-host .dm-step-panel{border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;background:#fff;transition:all .25s ease;margin-bottom:12px;}' +
-      '.dm-widget-host .dm-step-head{display:flex;align-items:center;gap:14px;padding:16px 18px;background:#f9fafb;color:#111827;cursor:pointer;}' +
+      '.dm-widget-host .dm-step-panel{border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;background:#fff;transition:background-color .45s ease,border-color .45s ease,box-shadow .45s ease;margin-bottom:12px;}' +
+      '.dm-widget-host .dm-step-head{display:flex;align-items:center;gap:12px;padding:13px 16px;background:#f9fafb;color:#111827;cursor:pointer;}' +
       '.dm-widget-host .dm-step-head-main{flex:1;min-width:0;}' +
       '.dm-widget-host .dm-step-head-title{margin:0 0 2px;font-size:16px;font-weight:700;color:#111827 !important;}' +
       '.dm-widget-host .dm-step-panel:not(.active) .dm-step-head-title{color:#111827 !important;}' +
       '.dm-widget-host .dm-step-panel.active .dm-step-head-title{color:#fff !important;}' +
+      '.dm-widget-host .dm-step-panel.done .dm-step-head-title{color:#fff !important;}' +
       '.dm-widget-host .dm-step-head-sub{display:none;margin:0;font-size:12px;color:#6b7280 !important;line-height:1.35;}' +
-      '.dm-widget-host .dm-step-chevron{font-size:20px;color:#9ca3af;transform:rotate(0deg);transition:transform .2s ease;}' +
+      '.dm-widget-host .dm-step-chevron{font-size:20px;color:#9ca3af;transform:rotate(0deg);transition:transform .4s cubic-bezier(.22,.61,.36,1);}' +
       '.dm-widget-host .dm-step-panel.active .dm-step-head{background:#821436;color:#fff;}' +
       '.dm-widget-host .dm-step-panel.done .dm-step-head{background:#10b981;color:#fff;}' +
+      '.dm-widget-host .dm-step-panel:not(.active):hover .dm-step-head{background:#6e112e;color:#fff;}' +
+      '.dm-widget-host .dm-step-panel:not(.active):hover .dm-step-head-title{color:#fff !important;}' +
+      '.dm-widget-host .dm-step-panel:not(.active):hover .dm-step-chevron{color:#fff;}' +
       '.dm-widget-host .dm-step-panel.done .dm-step-head:hover{background:#6e112e;color:#fff;}' +
       '.dm-widget-host .dm-step-panel.active .dm-step-head-sub{display:block;color:rgba(255,255,255,.9) !important;}' +
       '.dm-widget-host .dm-step-panel.active .dm-step-chevron{color:#fff;transform:rotate(180deg);}' +
@@ -299,12 +303,12 @@
       '.dm-widget-host .dm-step-number{display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:999px;background:#821436;color:#fff;font-size:15px;font-weight:700;flex:0 0 auto;}' +
       '.dm-widget-host .dm-step-panel.active .dm-step-number,.dm-widget-host .dm-step-panel.done .dm-step-number{background:#fff;color:#821436;}' +
       '.dm-widget-host .dm-step-panel.done .dm-step-number{color:#059669;}' +
-      '.dm-widget-host .dm-step-panel .dm-step-body{display:none;padding:18px;border-top:1px solid #e5e7eb;}' +
-      '.dm-widget-host .dm-step-panel.active .dm-step-body{display:block;}' +
-      '.dm-widget-host .dm-lead-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}' +
+      '.dm-widget-host .dm-step-panel .dm-step-body{max-height:0;opacity:0;overflow:hidden;padding:0 16px;border-top:0 solid #e5e7eb;transition:max-height .58s cubic-bezier(.22,.61,.36,1),opacity .38s ease,padding .5s ease,border-top-width .42s ease;will-change:max-height,opacity;}' +
+      '.dm-widget-host .dm-step-panel.active .dm-step-body{max-height:1200px;opacity:1;padding:14px 16px;border-top-width:1px;}' +
+      '.dm-widget-host .dm-lead-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}' +
       '.dm-widget-host .dm-lead-grid .full{grid-column:1/-1;}' +
       '.dm-widget-host .dm-stepper-form label{display:block;font-size:13px;font-weight:700;margin-bottom:6px;color:#111827;}' +
-      '.dm-widget-host .dm-stepper-form input,.dm-widget-host .dm-stepper-form select{width:100%;padding:11px 12px;border:1px solid #d1d5db;border-radius:10px;font-size:14px;box-sizing:border-box;transition:border-color .2s ease,box-shadow .2s ease;}' +
+      '.dm-widget-host .dm-stepper-form input,.dm-widget-host .dm-stepper-form select{width:100%;padding:10px 11px;border:1px solid #d1d5db;border-radius:10px;font-size:14px;box-sizing:border-box;transition:border-color .2s ease,box-shadow .2s ease;}' +
       '.dm-widget-host .dm-card-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}' +
       '.dm-widget-host .dm-card-option{position:relative;cursor:pointer;display:block;}' +
       '.dm-widget-host .dm-card-option input{position:absolute;opacity:0;pointer-events:none;}' +
@@ -313,18 +317,18 @@
       '.dm-widget-host .dm-card-body small{display:block;font-size:12px;color:#667085;line-height:1.35;font-weight:400 !important;}' +
       '.dm-widget-host .dm-card-option:hover .dm-card-body{border-color:#821436;box-shadow:0 4px 10px rgba(16,24,40,.08);}' +
       '.dm-widget-host .dm-card-option input:checked + .dm-card-body{border-color:#821436;background:#fdf2f5;box-shadow:0 0 0 3px rgba(130,20,54,.14);}' +
-      '.dm-widget-host .dm-choice-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}' +
+      '.dm-widget-host .dm-choice-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}' +
       '.dm-widget-host .dm-choice-option{position:relative;cursor:pointer;display:block;}' +
       '.dm-widget-host .dm-choice-option input{position:absolute;opacity:0;pointer-events:none;}' +
-      '.dm-widget-host .dm-choice-card{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:102px;border:2px solid #d0d5dd;border-radius:10px;padding:12px;background:#fff;transition:all .2s ease;text-align:center;}' +
+      '.dm-widget-host .dm-choice-card{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:10px;min-height:46px;border:2px solid #d0d5dd;border-radius:10px;padding:9px 11px;background:#fff;transition:all .2s ease;text-align:left;}' +
       '.dm-widget-host .dm-choice-text{display:block;font-size:13px;font-weight:700;color:#111827;line-height:1.2;}' +
-      '.dm-widget-host .dm-choice-icon{width:22px;height:22px;color:#344054;display:inline-flex;align-items:center;justify-content:center;font-size:22px;line-height:1;}' +
+      '.dm-widget-host .dm-choice-icon{width:18px;height:18px;color:#344054;display:inline-flex;align-items:center;justify-content:center;font-size:18px;line-height:1;flex:0 0 18px;}' +
       '.dm-widget-host .dm-choice-option:hover .dm-choice-card{border-color:#821436;box-shadow:0 4px 10px rgba(16,24,40,.08);}' +
       '.dm-widget-host .dm-choice-option input:checked + .dm-choice-card{border-color:#821436;background:#fdf2f5;box-shadow:0 0 0 3px rgba(130,20,54,.14);}' +
       '.dm-widget-host .dm-choice-option input:checked + .dm-choice-card .dm-choice-icon{color:#821436;}' +
       '.dm-widget-host .dm-stepper-form input:focus,.dm-widget-host .dm-stepper-form select:focus{outline:none;border-color:#821436;box-shadow:0 0 0 3px rgba(130,20,54,.18);}' +
       '.dm-widget-host .dm-stepper-form.dm-show-errors input:invalid,.dm-widget-host .dm-stepper-form.dm-show-errors select:invalid{border-color:#ef4444 !important;box-shadow:0 0 0 3px rgba(239,68,68,.12);background:#fff7f7;}' +
-      '.dm-widget-host .dm-lead-legal{margin-top:12px;display:grid;gap:8px;}' +
+      '.dm-widget-host .dm-lead-legal{margin-top:10px;display:grid;gap:7px;}' +
       '.dm-widget-host .dm-legal-item{display:grid;grid-template-columns:5% 95%;align-items:start;font-size:11px;line-height:1.4;color:#4b5563;font-weight:400 !important;margin-bottom:0 !important;}' +
       '.dm-widget-host .dm-legal-item input{width:auto !important;min-width:14px;height:14px;padding:0 !important;border:0 !important;border-radius:0 !important;margin-top:2px;margin-right:10px;justify-self:start;display:inline-block;background:transparent !important;box-shadow:none !important;}' +
       '.dm-widget-host .dm-legal-item a{display:inline !important;color:#821436;text-decoration:underline;font-weight:400 !important;}' +
@@ -336,15 +340,18 @@
       '.dm-widget-host .dm-step-3-grid{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);}' +
       '.dm-widget-host .dm-step-3-grid .full{grid-column:1/-1;}' +
       '.dm-widget-host .dm-country-alert{margin-top:10px;border:1px solid #fca5a5;background:#fef2f2;color:#b91c1c;border-radius:10px;padding:10px 12px;font-size:12px;line-height:1.35;display:none;}' +
-      '.dm-widget-host .dm-step-actions{display:flex;gap:8px;margin-top:14px;}' +
+      '.dm-widget-host .dm-step-actions{display:flex;gap:8px;margin-top:10px;}' +
       '.dm-widget-host .dm-step-actions .dm-spacer{flex:1;}' +
+      '.dm-widget-host .dm-final-submit-wrap{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;margin:2px 28px 0;max-height:0;opacity:0;transform:translateY(-8px);pointer-events:none;overflow:hidden;transition:max-height .5s cubic-bezier(.22,.61,.36,1),opacity .35s ease,transform .35s ease;}' +
+      '.dm-widget-host .dm-final-submit-wrap.is-visible{max-height:120px;opacity:1;transform:translateY(0);pointer-events:auto;}' +
+      '.dm-widget-host .dm-final-submit-hint{font-size:12px;color:#6b7280;text-align:center;margin:0;}' +
       '.dm-widget-host .dm-btn{border:0;border-radius:10px;padding:11px 14px;font-weight:700;cursor:pointer;appearance:none;-webkit-appearance:none;transition:all .18s ease;}' +
       '.dm-widget-host .dm-btn-primary{background:#821436;color:#fff;}' +
       '.dm-widget-host .dm-btn-primary:hover{background:#6e112e;}' +
       '.dm-widget-host .dm-btn-secondary{background:#e5e7eb;color:#374151;}' +
       '.dm-widget-host .dm-btn-secondary:hover{background:#d1d5db;}' +
       '.dm-widget-host .dm-btn-block{width:100%;display:block;}' +
-      '.dm-widget-host .dm-lead-status{font-size:13px;font-weight:700;margin-top:10px;min-height:18px;}' +
+      '.dm-widget-host .dm-lead-status{font-size:13px;font-weight:700;margin-top:12px;min-height:18px;text-align:center;}' +
       '.dm-widget-host .dm-lead-status.error{color:#b91c1c;}' +
       '.dm-widget-host .dm-lead-status.ok{color:#047857;}' +
       '.dm-widget-host .dm-wa-open{border:0;border-radius:999px;padding:12px 16px;background:#25D366;color:#fff;font-weight:700;cursor:pointer;}' +
@@ -357,7 +364,7 @@
       '.dm-widget-host .dm-wa-form.dm-show-errors input:invalid{border-color:#ef4444 !important;box-shadow:0 0 0 3px rgba(239,68,68,.12);background:#fff7f7;}' +
       '.dm-widget-host .dm-wa-actions{margin-top:4px;}' +
       '.dm-widget-host .dm-wa-success{display:none;text-align:center;padding:18px 10px;color:#047857;font-weight:700;}' +
-      '@media (max-width:640px){.dm-widget-host .dm-stepper-form{padding:18px;}.dm-widget-host .dm-form-header h2{font-size:26px;}.dm-widget-host .dm-lead-grid{grid-template-columns:1fr;}.dm-widget-host .dm-step-3-grid{grid-template-columns:1fr;}.dm-widget-host .dm-card-grid{grid-template-columns:1fr;}.dm-widget-host .dm-choice-grid{grid-template-columns:1fr;}.dm-widget-host .dm-step-head{padding:14px;}}';
+      '@media (max-width:640px){.dm-widget-host .dm-stepper-form{padding:16px;}.dm-widget-host .dm-final-submit-wrap{margin:2px 16px 0;}.dm-widget-host .dm-form-header h2{font-size:26px;}.dm-widget-host .dm-lead-grid{grid-template-columns:1fr;}.dm-widget-host .dm-step-3-grid{grid-template-columns:1fr;}.dm-widget-host .dm-card-grid{grid-template-columns:1fr;}.dm-widget-host .dm-choice-grid{grid-template-columns:1fr;}.dm-widget-host .dm-step-head{padding:12px 14px;}}';
     document.head.appendChild(style);
   }
 
@@ -366,7 +373,7 @@
 
     return '' +
       '<div class="dm-stepper">' +
-      '  <form id="FORM_WEB_STEPPER" name="FORM_WEB_STEPPER" class="dm-stepper-form" novalidate>' +
+      '  <form id="FORM_WEB" name="FORM_WEB" class="dm-stepper-form" novalidate>' +
       '    <div class="dm-form-header"><h2>Solicita más información</h2><p>Nos gustaría conocerte mejor para ofrecerte la mejor experiencia</p></div>' +
       '    <div class="dm-step-panel active" data-step="1">' +
       '      <div class="dm-step-head">' +
@@ -393,7 +400,7 @@
       '      </div>' +
       '      <div class="dm-step-body">' +
       '        <div class="dm-lead-grid dm-step-3-grid">' +
-      '          <div class="full"><label>Mecanismo ingreso</label><div class="dm-card-grid">' +
+      '          <div class="full"><label>Mecanismo de ingreso</label><div class="dm-card-grid">' +
       '            <label class="dm-card-option"><input type="radio" name="mecanismo" value="Carrera Completa" required /><span class="dm-card-body"><strong>Carrera Completa</strong><small>Deseo cursar el programa desde el inicio</small></span></label>' +
       '            <label class="dm-card-option"><input type="radio" name="mecanismo" value="Homologacion de estudios" required /><span class="dm-card-body"><strong>Homologación</strong><small>Tengo estudios previos similares</small></span></label>' +
       '            <label class="dm-card-option"><input type="radio" name="mecanismo" value="Validacion de conocimientos / estudios de mas de 10 anos" required /><span class="dm-card-body"><strong>Validación de conocimientos</strong><small>Deseo validar mis conocimientos previos</small></span></label>' +
@@ -418,25 +425,29 @@
       '            <label class="dm-choice-option"><input type="radio" name="como_te_contactamos" value="llamada" required /><span class="dm-choice-card"><svg class="dm-choice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2A19.8 19.8 0 0 1 11.2 19a19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.8 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.4 1.8.7 2.8.8a2 2 0 0 1 1.7 2z"/></svg><span class="dm-choice-text">Llamada</span></span></label>' +
       '            <label class="dm-choice-option"><input type="radio" name="como_te_contactamos" value="correo" required /><span class="dm-choice-card"><svg class="dm-choice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg><span class="dm-choice-text">Correo</span></span></label>' +
       '          </div></div>' +
-      '          <div class="full"><label>Franja horaria</label><div class="dm-choice-grid">' +
+      '          <div class="full"><label>¿En qué franja horaria?</label><div class="dm-choice-grid">' +
       '            <label class="dm-choice-option"><input type="radio" name="franja_horaria" value="manana" required /><span class="dm-choice-card"><svg class="dm-choice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><span class="dm-choice-text">Mañana</span></span></label>' +
       '            <label class="dm-choice-option"><input type="radio" name="franja_horaria" value="tarde" required /><span class="dm-choice-card"><svg class="dm-choice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 20h12"/><path d="M8 16a4 4 0 1 1 8 0"/><path d="M3 16h18"/></svg><span class="dm-choice-text">Tarde</span></span></label>' +
       '            <label class="dm-choice-option"><input type="radio" name="franja_horaria" value="noche" required /><span class="dm-choice-card"><svg class="dm-choice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><span class="dm-choice-text">Noche</span></span></label>' +
       '          </div></div>' +
       '        </div>' +
       '        <div class="dm-lead-legal">' +
-      '          <label class="dm-legal-item"><input type="checkbox" name="autorizacion_contacto" value="SI" required /><span>Autorizo recibir informacion de UEES por medio de llamada telefonica, WhatsApp y SMS, mas de una vez a la semana por diferentes canales de contacto, con el fin de continuar con el proceso de inscripcion. He leido y aceptado el <a href="https://uees.edu.ec/politica-de-privacidad" target="_blank" rel="noopener noreferrer">aviso de privacidad</a>.</span></label>' +
-      '          <label class="dm-legal-item"><input type="checkbox" name="acepta_politica_datos" value="SI" required /><span>Acepto la <a href="https://uees.edu.ec/wp-content/uploads/2024/01/politica-de-tratamiento-de-datos-personales.pdf" target="_blank" rel="noopener noreferrer">politica de tratamiento de datos personales</a>.</span></label>' +
+      '          <label class="dm-legal-item"><input type="checkbox" name="autorizacion_contacto" value="SI" required /><span>Autorizo recibir información de UEES por medio de llamada telefónica, WhatsApp y SMS, más de una vez a la semana por diferentes canales de contacto, con el fin de continuar con el proceso de inscripción. He leído y aceptado el <a href="https://uees.edu.ec/politica-de-privacidad" target="_blank" rel="noopener noreferrer">aviso de privacidad</a>.</span></label>' +
+      '          <label class="dm-legal-item"><input type="checkbox" name="acepta_politica_datos" value="SI" required /><span>Acepto la <a href="https://uees.edu.ec/wp-content/uploads/2024/01/politica-de-tratamiento-de-datos-personales.pdf" target="_blank" rel="noopener noreferrer">política de tratamiento de datos personales</a>.</span></label>' +
       '        </div>' +
       '        <input type="hidden" name="programa" value="' + escapeAttr(config.programa) + '" />' +
       '        <input type="hidden" name="modalidad" value="' + escapeAttr(config.modalidad) + '" />' +
       '        <input type="hidden" name="nivel" value="' + escapeAttr(config.nivel) + '" />' +
       '        <input type="text" name="website" style="display:none" tabindex="-1" autocomplete="off" />' +
-      '        <div class="dm-step-actions"><button type="submit" class="dm-btn dm-btn-primary dm-btn-block">Enviar</button></div>' +
-      '        <div class="dm-lead-status" aria-live="polite"></div>' +
+      '        <div class="dm-step-actions"><span class="dm-spacer"></span></div>' +
       '      </div>' +
       '    </div>' +
       '  </form>' +
+      '  <div class="dm-final-submit-wrap" data-final-submit-wrap>' +
+      '    <button type="button" class="dm-btn dm-btn-primary dm-btn-block" data-final-submit>Enviar</button>' +
+      '    <p class="dm-final-submit-hint">Revisa tus datos y confirma el envío.</p>' +
+      '  </div>' +
+      '  <div class="dm-lead-status" aria-live="polite"></div>' +
       '</div>';
   }
 
@@ -446,12 +457,12 @@
       '  <button type="button" class="dm-wa-open">Chatear con un asesor</button>' +
       '  <div class="dm-wa-card">' +
       '    <form id="FORM_WS" name="FORM_WS" class="dm-wa-form" novalidate>' +
-      '      <h4>Dejanos tus datos</h4>' +
+      '      <h4>Déjanos tus datos</h4>' +
       '      <input type="text" name="nombre" placeholder="Nombre" required />' +
       '      <input type="text" name="apellido" placeholder="Apellido" required />' +
-      '      <input type="text" name="cedula" placeholder="Documento de identificacion" required />' +
+      '      <input type="text" name="cedula" placeholder="Número de identificación" required />' +
       '      <input type="email" name="correo" placeholder="Correo" required />' +
-      '      <input type="tel" name="telefono" placeholder="Telefono" required />' +
+      '      <input type="tel" name="telefono" placeholder="Teléfono" required />' +
       '      <input type="hidden" name="programa" value="' + escapeAttr(config.programa) + '" />' +
       '      <input type="hidden" name="modalidad" value="' + escapeAttr(config.modalidad) + '" />' +
       '      <input type="hidden" name="nivel" value="' + escapeAttr(config.nivel) + '" />' +
@@ -470,9 +481,9 @@
     return [
       'Hola, soy ' + (data.nombre || '') + ' ' + (data.apellido || ''),
       'Programa: ' + (data.programa || ''),
-      'Documento de identificacion: ' + (data.cedula || ''),
+      'Documento de identificación: ' + (data.cedula || ''),
       'Correo: ' + (data.correo || ''),
-      'Telefono: ' + (data.celular || ''),
+      'Teléfono: ' + (data.celular || ''),
       'Modalidad: ' + (data.modalidad || ''),
       'Nivel: ' + (data.nivel || '')
     ].join('\n');
@@ -489,13 +500,35 @@
 
   function pushTrackingEvent(eventName, payload, formId) {
     try {
+      var safeEventName = String(eventName || '').trim();
+      var safePath = clean(window.location.pathname || '').toLowerCase();
+      var safeCampaign = clean(payload && payload.utm_campaign ? payload.utm_campaign : '').toLowerCase();
+      var dedupeKey = ['dm_submit_success_sent', safeEventName, safePath, safeCampaign].join('__');
+
+      try {
+        if (window.sessionStorage && window.sessionStorage.getItem(dedupeKey) === '1') {
+          return;
+        }
+        if (window.sessionStorage) {
+          window.sessionStorage.setItem(dedupeKey, '1');
+        }
+      } catch (storageError) {
+        // no-op
+      }
+
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({
-        event: String(eventName || '').trim(),
+        event: safeEventName,
         form_id: String(formId || payload && payload.form_name || '').trim(),
         form_name: payload && payload.form_name ? payload.form_name : '',
         platform: payload && payload.platform ? payload.platform : '',
-        programa: payload && payload.programa ? payload.programa : ''
+        programa: payload && payload.programa ? payload.programa : '',
+        utm_source: payload && payload.utm_source ? payload.utm_source : '',
+        utm_medium: payload && payload.utm_medium ? payload.utm_medium : '',
+        utm_campaign: payload && payload.utm_campaign ? payload.utm_campaign : '',
+        utm_content: payload && payload.utm_content ? payload.utm_content : '',
+        utm_term: payload && payload.utm_term ? payload.utm_term : '',
+        utm_id: payload && payload.utm_id ? payload.utm_id : ''
       });
     } catch (error) {
       // no-op
@@ -720,6 +753,8 @@
     var stepBlocks = root.querySelectorAll('.dm-step-panel');
     var stepHeaders = root.querySelectorAll('.dm-step-head');
     var stepIndicators = root.querySelectorAll('[data-step-indicator]');
+    var finalSubmitWrap = root.querySelector('[data-final-submit-wrap]');
+    var finalSubmitButton = root.querySelector('[data-final-submit]');
     var countrySelect = form.querySelector('select[name="pais"]');
     var phoneInput = form.querySelector('input[name="celular"]');
     var countryCodeInput = form.querySelector('input[name="codigo_pais"]');
@@ -730,6 +765,7 @@
     var idLengthRules = getIdLengthRulesByCountry();
     var currentStep = 1;
     var maxUnlockedStep = 1;
+    var isFormReady = false;
 
     if (!form || !status) {
       return;
@@ -749,6 +785,9 @@
         if (blockStep < maxUnlockedStep) {
           block.classList.add('done');
         }
+        if (blockStep === 3 && isFormReady) {
+          block.classList.add('done');
+        }
       });
 
       stepIndicators.forEach(function (indicator) {
@@ -760,10 +799,18 @@
           indicator.classList.add('done');
           indicator.textContent = '✓';
         }
+        if (indicatorStep === 3 && isFormReady) {
+          indicator.classList.add('done');
+          indicator.textContent = '✓';
+        }
         if (indicatorStep === activeStep) {
           indicator.classList.add('active');
         }
       });
+
+      if (finalSubmitWrap) {
+        finalSubmitWrap.classList.toggle('is-visible', isFormReady);
+      }
     }
 
     function setStep(stepNumber) {
@@ -773,6 +820,7 @@
     function updateStepAvailability() {
       var step1Valid = validateStep(1);
       var step2Valid = step1Valid && validateStep(2);
+      var step3Valid = step2Valid && validateStep(3);
 
       maxUnlockedStep = 1;
       if (step1Valid) {
@@ -781,6 +829,7 @@
       if (step2Valid) {
         maxUnlockedStep = 3;
       }
+      isFormReady = step3Valid;
 
       var step2 = form.querySelector('.dm-step-panel[data-step="2"]');
       var step3 = form.querySelector('.dm-step-panel[data-step="3"]');
@@ -793,11 +842,16 @@
       }
 
       if (step3) {
-        if (maxUnlockedStep === 3 && currentStep !== 3) {
+        if (maxUnlockedStep === 3 && currentStep !== 3 && !isFormReady) {
           step3.classList.add('dm-pulse');
         } else {
           step3.classList.remove('dm-pulse');
         }
+      }
+
+      if (isFormReady && currentStep === 3) {
+        renderStepState(0);
+        return;
       }
 
       renderStepState(currentStep);
@@ -990,6 +1044,20 @@
       field.addEventListener('input', updateStepAvailability);
     });
 
+    if (finalSubmitButton) {
+      finalSubmitButton.addEventListener('click', function () {
+        status.className = 'dm-lead-status';
+        status.textContent = '';
+
+        if (typeof form.requestSubmit === 'function') {
+          form.requestSubmit();
+          return;
+        }
+
+        form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+      });
+    }
+
     updateCountryUI();
     updateStepAvailability();
 
@@ -1028,6 +1096,10 @@
       if (!step1Valid || !step2Valid || !step3Valid) {
         status.className = 'dm-lead-status error';
         status.textContent = 'Por favor completa todos los campos obligatorios.';
+        isFormReady = false;
+        if (finalSubmitWrap) {
+          finalSubmitWrap.classList.remove('is-visible');
+        }
         if (!step1Valid) {
           setStep(1);
         } else if (!step2Valid) {
@@ -1052,8 +1124,8 @@
       var payload = {
         campaign_name: immutableProgram,
         platform: upper(config.platform || 'WEB'),
-        event_type: 'FORM_WEB_STEPPER',
-        form_name: 'FORM_WEB_STEPPER',
+        event_type: 'FORM_WEB',
+        form_name: 'FORM_WEB',
         page_url: window.location.href,
         thank_you_url: window.location.href,
         referrer: clean(document.referrer || ''),
@@ -1139,11 +1211,16 @@
         status.className = 'dm-lead-status ok';
         status.textContent = config.successMessage;
 
-        pushTrackingEvent('FORM_WEB_STEPPER_SUBMIT_SUCCESS', payload, 'FORM_WEB_STEPPER');
+        pushTrackingEvent('FORM_WEB_SUBMIT_SUCCESS', payload, 'FORM_WEB');
         form.reset();
         maxUnlockedStep = 1;
+        isFormReady = false;
+        if (finalSubmitWrap) {
+          finalSubmitWrap.classList.remove('is-visible');
+        }
         setStep(1);
         updateCountryUI();
+        updateStepAvailability();
       } catch (error) {
         status.className = 'dm-lead-status error';
         status.textContent = 'No se pudo enviar. Intenta nuevamente.';

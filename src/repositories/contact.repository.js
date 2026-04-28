@@ -1,5 +1,5 @@
 const { getPool } = require('../config/database');
-const { cleanEmail, cleanPhone, cleanUpper } = require('../utils/sanitize');
+const { cleanEmail, cleanPhone, cleanUpper, normalizeCountryIso2 } = require('../utils/sanitize');
 
 async function findByPhoneOrEmail(contact) {
   const pool = getPool();
@@ -71,7 +71,7 @@ async function upsertLead(contact, context = {}) {
   const modalidadUpper = cleanUpper(contact.modalidad);
   const nivelUpper = cleanUpper(contact.nivel);
   const ciudadUpper = cleanUpper(contact.ciudad);
-  const paisUpper = cleanUpper(contact.pais || contact.country);
+  const paisUpper = normalizeCountryIso2(contact.pais || contact.country);
   const mecanismoIngresoUpper = cleanUpper(contact.mecanismo_ingreso || contact.mecanismo);
   const comoTeContactamosUpper = cleanUpper(contact.como_te_contactamos);
   const franjaHorariaUpper = cleanUpper(contact.franja_horaria);

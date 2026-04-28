@@ -85,7 +85,7 @@ function isSecureRequest(req) {
     return true;
   }
 
-  return String(env.NODE_ENV || '').toLowerCase() === 'production';
+  return false;
 }
 
 function unauthorizedResponse(req, res) {

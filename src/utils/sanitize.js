@@ -26,6 +26,58 @@ function cleanPhone(value) {
   return value.replace(/\D/g, '');
 }
 
+function normalizeCountryKey(value) {
+  return String(value == null ? '' : value)
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^A-Za-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .toUpperCase();
+}
+
+function normalizeCountryIso2(value) {
+  const key = normalizeCountryKey(value);
+
+  if (!key) {
+    return '';
+  }
+
+  if (/^[A-Z]{2}$/.test(key)) {
+    return key;
+  }
+
+  const aliasMap = {
+    ECUADOR: 'EC',
+    COLOMBIA: 'CO',
+    PERU: 'PE',
+    MEXICO: 'MX',
+    ESTADOS_UNIDOS: 'US',
+    UNITED_STATES: 'US',
+    USA: 'US',
+    CANADA: 'CA',
+    ARGENTINA: 'AR',
+    CHILE: 'CL',
+    BOLIVIA: 'BO',
+    PARAGUAY: 'PY',
+    URUGUAY: 'UY',
+    VENEZUELA: 'VE',
+    BRASIL: 'BR',
+    BRAZIL: 'BR',
+    ESPANA: 'ES',
+    SPAIN: 'ES',
+    ITALIA: 'IT',
+    FRANCIA: 'FR',
+    FRANCE: 'FR',
+    ALEMANIA: 'DE',
+    GERMANY: 'DE',
+    REINO_UNIDO: 'GB',
+    UNITED_KINGDOM: 'GB'
+  };
+
+  return aliasMap[key] || key;
+}
+
 function cleanMaybeJsonValue(value) {
   if (value === null || value === undefined) {
     return '';
@@ -61,5 +113,6 @@ module.exports = {
   cleanUpper,
   cleanEmail,
   cleanPhone,
-  cleanMaybeJsonValue
+  cleanMaybeJsonValue,
+  normalizeCountryIso2
 };

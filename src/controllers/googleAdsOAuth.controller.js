@@ -58,7 +58,7 @@ function isSecureRequest(req) {
     return true;
   }
 
-  return String(env.NODE_ENV || '').toLowerCase() === 'production';
+  return false;
 }
 
 function setStateCookie(req, res, state) {

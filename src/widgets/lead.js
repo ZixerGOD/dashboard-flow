@@ -174,8 +174,8 @@
       '      <div><label>Teléfono</label><input name="celular" required /></div>' +
       '      <div class="full"><label>Documento de identificación</label><input name="cedula" required /></div>' +
       '      <div class="full"><label>Ciudad</label><input name="ciudad" required /></div>' +
-      '      <div><label>Mecanismo ingreso</label><select name="mecanismo" required><option value="">Selecciona</option><option value="Carrera Completa">Carrera Completa</option><option value="Homologacion de estudios">Homologacion de estudios</option><option value="Validacion de conocimientos / estudios de mas de 10 años">Validacion de conocimientos / estudios de mas de 10 anos</option><option value="Validacion de ejercicio profesional">Validacion de ejercicio profesional</option></select></div>' +
-      '      <div><label>Como te contactamos</label><select name="como_te_contactamos" required><option value="">Selecciona</option><option value="whatsapp">WhatsApp</option><option value="llamada">Llamada</option><option value="correo">Correo</option></select></div>' +
+      '      <div><label>Mecanismo de ingreso</label><select name="mecanismo" required><option value="">Selecciona</option><option value="Carrera Completa">Carrera Completa</option><option value="Homologacion de estudios">Homologación de estudios</option><option value="Validacion de conocimientos / estudios de mas de 10 años">Validación de conocimientos / estudios de más de 10 años</option><option value="Validacion de ejercicio profesional">Validación de ejercicio profesional</option></select></div>' +
+      '      <div><label>¿Cómo te contactamos?</label><select name="como_te_contactamos" required><option value="">Selecciona</option><option value="whatsapp">WhatsApp</option><option value="llamada">Llamada</option><option value="correo">Correo</option></select></div>' +
       '      <div class="full"><label>Franja horaria</label><select name="franja_horaria" required><option value="">Selecciona</option><option value="manana">Mañana</option><option value="tarde">Tarde</option><option value="noche">Noche</option></select></div>' +
       '    </div>' +
       '    <input type="hidden" name="programa" value="' + escapeAttr(config.programa) + '" />' +
@@ -201,7 +201,7 @@
       '      <h4>Déjanos tus datos</h4>' +
       '      <input type="text" name="nombre" placeholder="Nombre" required />' +
       '      <input type="text" name="apellido" placeholder="Apellido" required />' +
-      '      <input type="text" name="cedula" placeholder="Documento de identificación" required />' +
+      '      <input type="text" name="cedula" placeholder="Número de identificación" required />' +
       '      <input type="email" name="correo" placeholder="Correo" required />' +
       '      <input type="tel" name="telefono" placeholder="Teléfono" required />' +
       '      <input type="hidden" name="programa" value="' + escapeAttr(config.programa) + '" />' +
@@ -241,13 +241,35 @@
 
   function pushTrackingEvent(eventName, payload, formId) {
     try {
+      var safeEventName = String(eventName || '').trim();
+      var safePath = clean(window.location.pathname || '').toLowerCase();
+      var safeCampaign = clean(payload && payload.utm_campaign ? payload.utm_campaign : '').toLowerCase();
+      var dedupeKey = ['dm_submit_success_sent', safeEventName, safePath, safeCampaign].join('__');
+
+      try {
+        if (window.sessionStorage && window.sessionStorage.getItem(dedupeKey) === '1') {
+          return;
+        }
+        if (window.sessionStorage) {
+          window.sessionStorage.setItem(dedupeKey, '1');
+        }
+      } catch (storageError) {
+        // no-op
+      }
+
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({
-        event: String(eventName || '').trim(),
+        event: safeEventName,
         form_id: String(formId || payload?.form_name || '').trim(),
         form_name: payload && payload.form_name ? payload.form_name : '',
         platform: payload && payload.platform ? payload.platform : '',
-        programa: payload && payload.programa ? payload.programa : ''
+        programa: payload && payload.programa ? payload.programa : '',
+        utm_source: payload && payload.utm_source ? payload.utm_source : '',
+        utm_medium: payload && payload.utm_medium ? payload.utm_medium : '',
+        utm_campaign: payload && payload.utm_campaign ? payload.utm_campaign : '',
+        utm_content: payload && payload.utm_content ? payload.utm_content : '',
+        utm_term: payload && payload.utm_term ? payload.utm_term : '',
+        utm_id: payload && payload.utm_id ? payload.utm_id : ''
       });
     } catch (error) {
       // no-op

@@ -2,6 +2,7 @@ const path = require('path');
 const { sendSuccess, createHttpError } = require('../utils/response');
 const insightsService = require('../services/insights.service');
 const crmRepository = require('../repositories/crm.repository');
+const { validateLeadContactQuality } = require('../utils/leadValidation');
 const logger = require('../config/logger');
 
 const leadScriptPath = path.resolve(__dirname, '../widgets/lead.js');
@@ -200,6 +201,11 @@ async function submitLead(req, res, next) {
     }
 
     applyWidgetDefaultUtm(payload);
+
+    const validation = validateLeadContactQuality(payload);
+    if (!validation.ok) {
+      throw createHttpError(400, validation.message);
+    }
 
     const result = await insightsService.processInsightsPayload(payload);
 

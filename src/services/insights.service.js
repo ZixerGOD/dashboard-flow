@@ -5,6 +5,7 @@ const leadEventMatchRepository = require('../repositories/lead_event_match.repos
 const biMetricsRepository = require('../repositories/bi_metrics.repository');
 const logger = require('../config/logger');
 const { cleanText, cleanMaybeJsonValue } = require('../utils/sanitize');
+const { validateLeadContactQuality } = require('../utils/leadValidation');
 const { createHttpError } = require('../utils/response');
 
 function normalizeCountry(country) {
@@ -244,6 +245,20 @@ async function processInsightsPayload(payload) {
     }
 
     if (shouldSkipCrmMatch(row) || isLeadFormPayload(row)) {
+      const validation = validateLeadContactQuality(row);
+      if (!validation.ok) {
+        logger.warn(
+          {
+            reason: validation.code,
+            campaign_name: campaignName,
+            event_type: row?.event_type || null,
+            form_name: row?.form_name || null
+          },
+          'Skipped lead row due to contact quality validation'
+        );
+        continue;
+      }
+
       const siteEvent = mapSiteEventRow(row);
       const contact = mapContactRow(row);
 
