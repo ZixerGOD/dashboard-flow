@@ -2,11 +2,14 @@ const path = require('path');
 const { sendSuccess, createHttpError } = require('../utils/response');
 const insightsService = require('../services/insights.service');
 const crmRepository = require('../repositories/crm.repository');
+const { sendLeadToMetaCapi } = require('../services/metaCapi.service');
 const { validateLeadContactQuality } = require('../utils/leadValidation');
 const logger = require('../config/logger');
 
 const leadScriptPath = path.resolve(__dirname, '../widgets/lead.js');
 const leadStepperScriptPath = path.resolve(__dirname, '../widgets/lead-stepper.js');
+const leadStepperGeneralScriptPath = path.resolve(__dirname, '../widgets/lead-stepper-general-grado.js');
+const leadStepperGeneralPostgradoScriptPath = path.resolve(__dirname, '../widgets/lead-stepper-general-postgrado.js');
 
 function normalizePlatform(value) {
   return String(value == null ? '' : value).trim().toUpperCase();
@@ -108,6 +111,18 @@ function serveLeadBackupScript(req, res) {
   return res.sendFile(leadScriptPath);
 }
 
+function serveLeadStepperGeneralScript(req, res) {
+  res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+  return res.sendFile(leadStepperGeneralScriptPath);
+}
+
+function serveLeadStepperGeneralPostgradoScript(req, res) {
+  res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+  return res.sendFile(leadStepperGeneralPostgradoScriptPath);
+}
+
 function validateCountryPhoneMatch(body) {
   const country = cleanText(body.pais || body.country || '');
   const countryCode = cleanText(body.codigo_pais || body.country_code || '');
@@ -126,7 +141,7 @@ function validateCountryPhoneMatch(body) {
   }
 
   if (isInternationalPhone && !normalizedPhone.startsWith(normalizedCode)) {
-    throw createHttpError(400, 'El número de teléfono no coincide con el país seleccionado.');
+    throw createHttpError(400, 'Coloca un número de celular válido.');
   }
 }
 
@@ -164,21 +179,33 @@ function validateIdentificationDocument(body) {
 
   const digits = idRaw.replace(/\D/g, '');
   if (digits !== idRaw) {
-    throw createHttpError(400, 'El documento de identificación solo acepta números.');
+    throw createHttpError(400, 'Coloca un número de identificación válido.');
   }
 
   const expectedLength = getIdLengthRulesByCountry()[country];
   if (expectedLength && digits.length !== expectedLength) {
-    throw createHttpError(
-      400,
-      `El documento de identificación para ${cleanText(body.pais || body.country)} debe tener ${expectedLength} dígitos.`
-    );
+    throw createHttpError(400, 'Coloca un número de identificación válido.');
+  }
+}
+
+function validateMinimumEmailAndPhone(body) {
+  const email = cleanText(body.correo || body.email || '').toLowerCase();
+  const phoneDigits = cleanText(body.celular || body.phone || body.telefono || '').replace(/\D/g, '');
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+  if (!email || !emailPattern.test(email)) {
+    throw createHttpError(400, 'El correo no tiene un formato valido.');
+  }
+
+  if (phoneDigits.length < 8 || phoneDigits.length > 15) {
+    throw createHttpError(400, 'Coloca un número de celular válido.');
   }
 }
 
 async function submitLead(req, res, next) {
   try {
     const body = req.body && typeof req.body === 'object' ? req.body : {};
+    const validationWarnings = [];
 
     if (body.website) {
       return next(createHttpError(400, 'Invalid payload'));
@@ -192,6 +219,8 @@ async function submitLead(req, res, next) {
       form_name: body.form_name || 'embedded-lead-widget'
     };
 
+    validateMinimumEmailAndPhone(payload);
+
     normalizePhoneWithCountryCode(payload);
     validateCountryPhoneMatch(payload);
     validateIdentificationDocument(payload);
@@ -204,10 +233,31 @@ async function submitLead(req, res, next) {
 
     const validation = validateLeadContactQuality(payload);
     if (!validation.ok) {
-      throw createHttpError(400, validation.message);
+      throw createHttpError(400, validation.message || 'Los datos de contacto no son validos.');
+    }
+
+    if (validationWarnings.length) {
+      logger.warn({ warnings: validationWarnings, payloadMeta: { event_type: payload.event_type, form_name: payload.form_name } }, 'Widget lead accepted with validation warnings');
     }
 
     const result = await insightsService.processInsightsPayload(payload);
+
+    let metaCapi = {
+      ok: false,
+      skipped: false,
+      error: null
+    };
+
+    try {
+      metaCapi = await sendLeadToMetaCapi({ payload, req });
+    } catch (metaError) {
+      metaCapi = {
+        ok: false,
+        skipped: false,
+        error: metaError?.message || 'meta_capi_failed'
+      };
+      logger.error({ err: metaError }, 'Failed sending widget lead to Meta CAPI');
+    }
 
     let crmForwarding = {
       ok: false,
@@ -262,6 +312,8 @@ async function submitLead(req, res, next) {
       res,
       {
         ...result,
+        validation_warnings: validationWarnings,
+        meta_capi: metaCapi,
         crm_forwarding: crmForwarding
       },
       200
@@ -274,6 +326,8 @@ async function submitLead(req, res, next) {
 module.exports = {
   serveLeadScript,
   serveLeadStepperScript,
+  serveLeadStepperGeneralScript,
+  serveLeadStepperGeneralPostgradoScript,
   serveLeadBackupScript,
   submitLead
 };

@@ -46,7 +46,7 @@
     var dataset = (scriptEl && scriptEl.dataset) || {};
     var src = scriptEl && scriptEl.src ? new URL(scriptEl.src, window.location.href) : new URL(window.location.href);
     var baseUrl = dataset.baseUrl ? clean(dataset.baseUrl) : src.origin;
-    var platform = clean(dataset.platform || dataset.source || 'landing').toUpperCase();
+    var platform = 'LANDING';
 
     var variant = clean(dataset.variant || 'full').toLowerCase();
     var defaultUtmSource = 'FORM_WEB';
@@ -73,7 +73,9 @@
         'Grado'
       ),
       submitUrl: clean(dataset.submitUrl || (baseUrl + '/widgets/lead/submit')),
-      platform: platform || 'WEB',
+      challengeUrl: clean(dataset.challengeUrl || (baseUrl + '/widgets/lead/challenge')),
+      submitToken: clean(dataset.submitToken || ''),
+      platform: platform,
       whatsappNumber: clean(dataset.whatsapp || ''),
       successMessage: clean(dataset.successMessage || 'Enviado correctamente'),
       defaultUtm: {
@@ -113,6 +115,50 @@
     );
   }
 
+  function getCookie(name) {
+    try {
+      var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+      return match ? decodeURIComponent(match[2]) : '';
+    } catch (error) {
+      return '';
+    }
+  }
+
+  function makeEventId(prefix) {
+    var randomPart = Math.random().toString(36).slice(2, 10);
+    return [clean(prefix || 'lead'), Date.now(), randomPart].join('.');
+  }
+
+  async function resolveSubmitAuthHeaders(config) {
+    if (config.submitToken) {
+      return { 'X-Widget-Token': config.submitToken };
+    }
+
+    try {
+      var challengeResponse = await fetch(config.challengeUrl, {
+        method: 'GET',
+        credentials: 'omit'
+      });
+      if (!challengeResponse.ok) {
+        return {};
+      }
+
+      var payload = await challengeResponse.json().catch(function () { return null; });
+      var data = payload && payload.data ? payload.data : null;
+      if (!data || !data.nonce || !data.ts || !data.signature) {
+        return {};
+      }
+
+      return {
+        'X-Widget-Nonce': String(data.nonce),
+        'X-Widget-Ts': String(data.ts),
+        'X-Widget-Proof': String(data.signature)
+      };
+    } catch (error) {
+      return {};
+    }
+  }
+
   function injectStyles() {
     if (document.getElementById('dm-lead-widget-style')) {
       return;
@@ -135,6 +181,15 @@
       '.dm-widget-host .dm-lead-widget .dm-legal-copy{display:inline !important;font:inherit;color:inherit;line-height:inherit;}' +
       '.dm-widget-host .dm-lead-widget .dm-legal-item input{width:auto !important;min-width:14px;height:14px;padding:0 !important;border:0 !important;border-radius:0 !important;margin-top:2px;flex:0 0 auto;display:inline-block;background:transparent !important;box-shadow:none !important;}' +
       '.dm-widget-host .dm-lead-widget .dm-legal-item a{display:inline !important;color:#821436;text-decoration:underline;font-weight:400 !important;}' +
+      '.dm-widget-host .dm-choice-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}' +
+      '.dm-widget-host .dm-choice-option{position:relative;cursor:pointer;display:block;}' +
+      '.dm-widget-host .dm-choice-option input{position:absolute;opacity:0;pointer-events:none;}' +
+      '.dm-widget-host .dm-choice-card{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:10px;min-height:46px;border:2px solid #d0d5dd;border-radius:10px;padding:9px 11px;background:#fff;transition:all .2s ease;text-align:left;}' +
+      '.dm-widget-host .dm-choice-text{display:block;font-size:13px;font-weight:700;color:#111827;line-height:1.2;}' +
+      '.dm-widget-host .dm-choice-icon{width:18px;height:18px;color:#344054;display:inline-flex;align-items:center;justify-content:center;font-size:18px;line-height:1;flex:0 0 18px;}' +
+      '.dm-widget-host .dm-choice-option:hover .dm-choice-card{border-color:#821436;box-shadow:0 4px 10px rgba(16,24,40,.08);}' +
+      '.dm-widget-host .dm-choice-option input:checked + .dm-choice-card{border-color:#821436;background:#fdf2f5;box-shadow:0 0 0 3px rgba(130,20,54,.14);}' +
+      '.dm-widget-host .dm-choice-option input:checked + .dm-choice-card .dm-choice-icon{color:#821436;}' +
       '.dm-widget-host .dm-lead-actions{display:flex;gap:8px;margin-top:12px;}' +
       '.dm-widget-host .dm-lead-btn,.dm-widget-host .dm-wa-open{border:0;border-radius:10px;padding:11px 14px;font-weight:700;cursor:pointer;appearance:none;-webkit-appearance:none;transition:background .18s ease,transform .08s ease,box-shadow .18s ease;}' +
       '.dm-widget-host .dm-lead-btn{background:#821436;color:#fff;}' +
@@ -156,9 +211,21 @@
       '.dm-widget-host .dm-wa-actions{margin-top:4px;}' +
       '.dm-widget-host .dm-wa-actions .dm-lead-btn{width:100%;display:block;}' +
       '.dm-widget-host .dm-wa-success{display:none;text-align:center;padding:18px 10px;color:#067647;font-weight:700;}' +
-      '@media (max-width:640px){.dm-widget-host .dm-lead-grid{grid-template-columns:1fr;}.dm-widget-host .dm-lead-widget h2{font-size:32px;}}';
+      '@media (max-width:640px){.dm-widget-host .dm-lead-grid{grid-template-columns:1fr;}.dm-widget-host .dm-choice-grid{grid-template-columns:1fr;}.dm-widget-host .dm-lead-widget h2{font-size:32px;}}';
 
     document.head.appendChild(style);
+  }
+
+  function ensureBootstrapIcons() {
+    if (document.getElementById('dm-bootstrap-icons')) {
+      return;
+    }
+
+    var link = document.createElement('link');
+    link.id = 'dm-bootstrap-icons';
+    link.rel = 'stylesheet';
+    link.href = 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css';
+    document.head.appendChild(link);
   }
 
   function buildFullForm(config) {
@@ -172,11 +239,19 @@
       '      <div><label>Apellido</label><input name="apellido" required /></div>' +
       '      <div><label>Correo</label><input name="correo" type="email" required /></div>' +
       '      <div><label>Teléfono</label><input name="celular" required /></div>' +
-      '      <div class="full"><label>Documento de identificación</label><input name="cedula" required /></div>' +
-      '      <div class="full"><label>Ciudad</label><input name="ciudad" required /></div>' +
-      '      <div><label>Mecanismo de ingreso</label><select name="mecanismo" required><option value="">Selecciona</option><option value="Carrera Completa">Carrera Completa</option><option value="Homologacion de estudios">Homologación de estudios</option><option value="Validacion de conocimientos / estudios de mas de 10 años">Validación de conocimientos / estudios de más de 10 años</option><option value="Validacion de ejercicio profesional">Validación de ejercicio profesional</option></select></div>' +
-      '      <div><label>¿Cómo te contactamos?</label><select name="como_te_contactamos" required><option value="">Selecciona</option><option value="whatsapp">WhatsApp</option><option value="llamada">Llamada</option><option value="correo">Correo</option></select></div>' +
-      '      <div class="full"><label>Franja horaria</label><select name="franja_horaria" required><option value="">Selecciona</option><option value="manana">Mañana</option><option value="tarde">Tarde</option><option value="noche">Noche</option></select></div>' +
+      '      <div><label>Número de identificación</label><input name="cedula" required /></div>' +
+      '      <div><label>Ciudad</label><input name="ciudad" required /></div>' +
+      '      <div class="full"><label>Mecanismo de ingreso</label><select name="mecanismo" required><option value="">Selecciona</option><option value="Carrera Completa">Carrera Completa</option><option value="Homologacion de estudios">Homologación de estudios</option><option value="Validacion de conocimientos / estudios de mas de 10 años">Validación de conocimientos / estudios de más de 10 años</option><option value="Validacion de ejercicio profesional">Validación de ejercicio profesional</option></select></div>' +
+      '      <div class="full"><label>¿Cómo te contactamos?</label><div class="dm-choice-grid">' +
+      '        <label class="dm-choice-option"><input type="radio" name="como_te_contactamos" value="whatsapp" required /><span class="dm-choice-card"><i class="bi bi-whatsapp dm-choice-icon" aria-hidden="true"></i><span class="dm-choice-text">WhatsApp</span></span></label>' +
+      '        <label class="dm-choice-option"><input type="radio" name="como_te_contactamos" value="llamada" required /><span class="dm-choice-card"><svg class="dm-choice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2A19.8 19.8 0 0 1 11.2 19a19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.8 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.4 1.8.7 2.8.8a2 2 0 0 1 1.7 2z"/></svg><span class="dm-choice-text">Llamada</span></span></label>' +
+      '        <label class="dm-choice-option"><input type="radio" name="como_te_contactamos" value="correo" required /><span class="dm-choice-card"><svg class="dm-choice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg><span class="dm-choice-text">Correo</span></span></label>' +
+      '      </div></div>' +
+      '      <div class="full"><label>Franja horaria</label><div class="dm-choice-grid">' +
+      '        <label class="dm-choice-option"><input type="radio" name="franja_horaria" value="manana" required /><span class="dm-choice-card"><svg class="dm-choice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><span class="dm-choice-text">Mañana</span></span></label>' +
+      '        <label class="dm-choice-option"><input type="radio" name="franja_horaria" value="tarde" required /><span class="dm-choice-card"><svg class="dm-choice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 20h12"/><path d="M8 16a4 4 0 1 1 8 0"/><path d="M3 16h18"/></svg><span class="dm-choice-text">Tarde</span></span></label>' +
+      '        <label class="dm-choice-option"><input type="radio" name="franja_horaria" value="noche" required /><span class="dm-choice-card"><svg class="dm-choice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><span class="dm-choice-text">Noche</span></span></label>' +
+      '      </div></div>' +
       '    </div>' +
       '    <input type="hidden" name="programa" value="' + escapeAttr(config.programa) + '" />' +
       '    <input type="hidden" name="modalidad" value="' + escapeAttr(config.modalidad) + '" />' +
@@ -260,16 +335,9 @@
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({
         event: safeEventName,
-        form_id: String(formId || payload?.form_name || '').trim(),
-        form_name: payload && payload.form_name ? payload.form_name : '',
-        platform: payload && payload.platform ? payload.platform : '',
-        programa: payload && payload.programa ? payload.programa : '',
-        utm_source: payload && payload.utm_source ? payload.utm_source : '',
-        utm_medium: payload && payload.utm_medium ? payload.utm_medium : '',
         utm_campaign: payload && payload.utm_campaign ? payload.utm_campaign : '',
-        utm_content: payload && payload.utm_content ? payload.utm_content : '',
-        utm_term: payload && payload.utm_term ? payload.utm_term : '',
-        utm_id: payload && payload.utm_id ? payload.utm_id : ''
+        email: payload && payload.correo ? payload.correo : '',
+        phone: payload && (payload.celular || payload.phone) ? (payload.celular || payload.phone) : ''
       });
     } catch (error) {
       // no-op
@@ -329,10 +397,11 @@
       var immutableProgram = clean(runtimeDataset.programa || data.programa || config.programa || 'Programa General');
       var runtimeModalidad = clean(runtimeDataset.modalidad || data.modalidad || config.modalidad || '');
       var runtimeNivel = clean(runtimeDataset.nivel || data.nivel || config.nivel || '');
+      var eventId = makeEventId(config.variant === 'wa' ? 'ws' : 'web');
 
       var payload = {
         campaign_name: immutableProgram,
-        platform: upper(config.platform || 'WEB'),
+        platform: 'LANDING',
         event_type: config.variant === 'wa' ? 'FORM_WS' : 'FORM_WEB',
         form_name: config.variant === 'wa' ? 'FORM_WS' : 'FORM_WEB',
         page_url: window.location.href,
@@ -356,6 +425,9 @@
         acepta_politica_datos: clean(data.acepta_politica_datos),
         programa: immutableProgram,
         website: clean(data.website || ''),
+        event_id: eventId,
+        fbc: clean(getCookie('_fbc')),
+        fbp: clean(getCookie('_fbp')),
         utm_source: clean(utm.utm_source),
         utm_medium: clean(utm.utm_medium),
         utm_campaign: clean(utm.utm_campaign),
@@ -389,6 +461,11 @@
           body: JSON.stringify(payload)
         };
 
+        var authHeaders = await resolveSubmitAuthHeaders(config);
+        Object.keys(authHeaders).forEach(function (key) {
+          requestOptions.headers[key] = authHeaders[key];
+        });
+
         if (controller) {
           requestOptions.signal = controller.signal;
         }
@@ -410,8 +487,7 @@
 
         var crmForwarding = responsePayload && responsePayload.data ? responsePayload.data.crm_forwarding : null;
         if (crmForwarding && crmForwarding.ok === false && crmForwarding.skipped !== true) {
-          var crmMsg = crmForwarding.response && (crmForwarding.response.msg || crmForwarding.response.message);
-          throw new Error('No se pudo enviar al CRM: ' + (crmMsg || crmForwarding.error || 'crm_forward_failed'));
+          // non-blocking CRM warning intentionally ignored in UI/runtime
         }
 
         status.className = 'dm-lead-status ok';
@@ -439,12 +515,13 @@
         form.reset();
       } catch (error) {
         status.className = 'dm-lead-status error';
-        status.textContent = 'No se pudo enviar. Intenta nuevamente.';
+        status.textContent = clean(error && error.message) || 'No se pudo enviar. Intenta nuevamente.';
       }
     });
   }
 
   function mountWidget() {
+    ensureBootstrapIcons();
     injectStyles();
 
     var config = getScriptConfig();
