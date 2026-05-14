@@ -2085,8 +2085,21 @@ function renderDashboardPage({ username, filters, options }) {
               body: '{}'
             });
 
-            const payload = await response.json();
+            const rawBody = await response.text();
+            let payload = null;
+            try {
+              payload = rawBody ? JSON.parse(rawBody) : null;
+            } catch (parseError) {
+              payload = null;
+            }
+
             if (!response.ok) {
+              if (!payload) {
+                const snippet = String(rawBody || '').replace(/\s+/g, ' ').trim().slice(0, 120);
+                const details = snippet ? ' Detalle: ' + snippet : '';
+                throw new Error('El refresh devolvio una respuesta no valida (HTTP ' + response.status + ').' + details);
+              }
+
               const retryAfterMs = Number(payload?.details?.retry_after_ms || 0);
               if (response.status === 429 && retryAfterMs > 0) {
                 const retryMinutes = Math.max(1, Math.ceil(retryAfterMs / 60000));
@@ -2094,6 +2107,10 @@ function renderDashboardPage({ username, filters, options }) {
               }
 
               throw new Error(payload?.error || 'No se pudo actualizar');
+            }
+
+            if (!payload) {
+              throw new Error('El refresh devolvio una respuesta vacia o no valida (HTTP ' + response.status + ').');
             }
 
             await loadDashboardData();

@@ -15,14 +15,8 @@ function getBearerToken(headerValue) {
 }
 
 function verifyMakeWebhook(req, res, next) {
-  const isProduction = String(env.NODE_ENV || '').toLowerCase() === 'production';
-
   if (!env.MAKE_WEBHOOK_TOKEN) {
-    if (isProduction) {
-      return next(createHttpError(503, 'MAKE_WEBHOOK_TOKEN is required in production'));
-    }
-
-    return next();
+    return next(createHttpError(404, 'Insights ingest endpoint is disabled'));
   }
 
   const headerToken = req.get('x-webhook-token') || req.get('x-make-token') || getBearerToken(req.get('authorization'));

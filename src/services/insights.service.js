@@ -252,11 +252,11 @@ async function processInsightsPayload(payload) {
             reason: validation.code,
             campaign_name: campaignName,
             event_type: row?.event_type || null,
-            form_name: row?.form_name || null
+            form_name: row?.form_name || null,
+            message: validation.message || null
           },
-          'Skipped lead row due to contact quality validation'
+          'Lead row accepted with contact quality warning'
         );
-        continue;
       }
 
       const siteEvent = mapSiteEventRow(row);

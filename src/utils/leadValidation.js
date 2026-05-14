@@ -156,7 +156,7 @@ function validateLeadContactQuality(payload) {
     return {
       ok: false,
       code: 'phone_invalid_pattern',
-      message: 'El numero de celular no es valido.'
+      message: 'Coloca un número de celular válido.'
     };
   }
 
@@ -164,7 +164,7 @@ function validateLeadContactQuality(payload) {
     return {
       ok: false,
       code: 'phone_invalid_ec',
-      message: 'El numero de celular de Ecuador no tiene un formato valido.'
+      message: 'Coloca un número de celular válido.'
     };
   }
 

@@ -27,13 +27,41 @@ function parseAllowedOrigins(originsValue) {
     .filter(Boolean);
 }
 
+function matchesOriginRule(origin, rule) {
+  if (!origin || !rule) {
+    return false;
+  }
+
+  if (rule === '*') {
+    return true;
+  }
+
+  if (!rule.includes('*')) {
+    return origin === rule;
+  }
+
+  try {
+    const originUrl = new URL(origin);
+    const ruleUrl = new URL(rule.replace('*.', 'placeholder.'));
+    const originHost = originUrl.hostname.toLowerCase();
+    const ruleHost = ruleUrl.hostname.toLowerCase().replace('placeholder.', '');
+    const sameProtocol = originUrl.protocol === ruleUrl.protocol;
+    const exactHost = originHost === ruleHost;
+    const subdomainHost = originHost.endsWith(`.${ruleHost}`);
+
+    return sameProtocol && (exactHost || subdomainHost);
+  } catch (error) {
+    return false;
+  }
+}
+
 function createCorsMiddleware() {
   const allowedOrigins = parseAllowedOrigins(env.CORS_ALLOWED_ORIGINS);
   const allowAnyOrigin = allowedOrigins.includes('*');
 
   return function corsMiddleware(req, res, next) {
     const origin = req.get('origin');
-    const isAllowedOrigin = allowAnyOrigin || (origin && allowedOrigins.includes(origin));
+    const isAllowedOrigin = allowAnyOrigin || allowedOrigins.some(rule => matchesOriginRule(origin, rule));
 
     if (isAllowedOrigin) {
       res.setHeader('Access-Control-Allow-Origin', allowAnyOrigin ? '*' : origin);
@@ -41,7 +69,10 @@ function createCorsMiddleware() {
     }
 
     res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Webhook-Token, X-Make-Token, Authorization');
+    res.setHeader(
+      'Access-Control-Allow-Headers',
+      'Content-Type, X-Webhook-Token, X-Make-Token, Authorization, X-Widget-Token, X-Widget-Nonce, X-Widget-Ts, X-Widget-Proof'
+    );
     res.setHeader('Access-Control-Max-Age', '86400');
 
     if (req.method === 'OPTIONS') {

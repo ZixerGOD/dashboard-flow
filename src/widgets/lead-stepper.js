@@ -57,6 +57,8 @@
       nivel: clean(dataset.nivel || dataset.nivelOculto || dataset.hiddenNivel || 'Grado'),
       platform: upper(dataset.platform || dataset.source || 'LANDING') || 'LANDING',
       submitUrl: clean(dataset.submitUrl || (baseUrl + '/widgets/lead/submit')),
+      challengeUrl: clean(dataset.challengeUrl || (baseUrl + '/widgets/lead/challenge')),
+      submitToken: clean(dataset.submitToken || ''),
       whatsappNumber: clean(dataset.whatsapp || ''),
       successMessage: clean(dataset.successMessage || 'Enviado correctamente'),
       defaultUtm: {
@@ -94,6 +96,50 @@
       clean(utm.utm_term) ||
       clean(utm.utm_id)
     );
+  }
+
+  function getCookie(name) {
+    try {
+      var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+      return match ? decodeURIComponent(match[2]) : '';
+    } catch (error) {
+      return '';
+    }
+  }
+
+  function makeEventId(prefix) {
+    var randomPart = Math.random().toString(36).slice(2, 10);
+    return [clean(prefix || 'lead'), Date.now(), randomPart].join('.');
+  }
+
+  async function resolveSubmitAuthHeaders(config) {
+    if (config.submitToken) {
+      return { 'X-Widget-Token': config.submitToken };
+    }
+
+    try {
+      var challengeResponse = await fetch(config.challengeUrl, {
+        method: 'GET',
+        credentials: 'omit'
+      });
+      if (!challengeResponse.ok) {
+        return {};
+      }
+
+      var payload = await challengeResponse.json().catch(function () { return null; });
+      var data = payload && payload.data ? payload.data : null;
+      if (!data || !data.nonce || !data.ts || !data.signature) {
+        return {};
+      }
+
+      return {
+        'X-Widget-Nonce': String(data.nonce),
+        'X-Widget-Ts': String(data.ts),
+        'X-Widget-Proof': String(data.signature)
+      };
+    } catch (error) {
+      return {};
+    }
   }
 
   function getPresenceCountries() {
@@ -519,16 +565,9 @@
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({
         event: safeEventName,
-        form_id: String(formId || payload && payload.form_name || '').trim(),
-        form_name: payload && payload.form_name ? payload.form_name : '',
-        platform: payload && payload.platform ? payload.platform : '',
-        programa: payload && payload.programa ? payload.programa : '',
-        utm_source: payload && payload.utm_source ? payload.utm_source : '',
-        utm_medium: payload && payload.utm_medium ? payload.utm_medium : '',
         utm_campaign: payload && payload.utm_campaign ? payload.utm_campaign : '',
-        utm_content: payload && payload.utm_content ? payload.utm_content : '',
-        utm_term: payload && payload.utm_term ? payload.utm_term : '',
-        utm_id: payload && payload.utm_id ? payload.utm_id : ''
+        email: payload && payload.correo ? payload.correo : '',
+        phone: payload && (payload.celular || payload.phone) ? (payload.celular || payload.phone) : ''
       });
     } catch (error) {
       // no-op
@@ -637,6 +676,7 @@
       var immutableProgram = clean(runtimeDataset.programa || data.programa || config.programa || 'Programa General');
       var runtimeModalidad = clean(runtimeDataset.modalidad || data.modalidad || config.modalidad || '');
       var runtimeNivel = clean(runtimeDataset.nivel || data.nivel || config.nivel || '');
+      var eventId = makeEventId('ws');
 
       var payload = {
         campaign_name: immutableProgram,
@@ -658,6 +698,9 @@
         nivel: runtimeNivel,
         programa: immutableProgram,
         website: clean(data.website || ''),
+        event_id: eventId,
+        fbc: clean(getCookie('_fbc')),
+        fbp: clean(getCookie('_fbp')),
         utm_source: clean(utm.utm_source),
         utm_medium: clean(utm.utm_medium),
         utm_campaign: clean(utm.utm_campaign),
@@ -691,6 +734,11 @@
           body: JSON.stringify(payload)
         };
 
+        var authHeaders = await resolveSubmitAuthHeaders(config);
+        Object.keys(authHeaders).forEach(function (key) {
+          requestOptions.headers[key] = authHeaders[key];
+        });
+
         if (controller) {
           requestOptions.signal = controller.signal;
         }
@@ -712,8 +760,7 @@
 
         var crmForwarding = responsePayload && responsePayload.data ? responsePayload.data.crm_forwarding : null;
         if (crmForwarding && crmForwarding.ok === false && crmForwarding.skipped !== true) {
-          var crmMsg = crmForwarding.response && (crmForwarding.response.msg || crmForwarding.response.message);
-          throw new Error('No se pudo enviar al CRM: ' + (crmMsg || crmForwarding.error || 'crm_forward_failed'));
+          // non-blocking CRM warning intentionally ignored in UI/runtime
         }
 
         status.className = 'dm-lead-status ok';
@@ -737,7 +784,7 @@
         form.reset();
       } catch (error) {
         status.className = 'dm-lead-status error';
-        status.textContent = 'No se pudo enviar. Intenta nuevamente.';
+        status.textContent = clean(error && error.message) || 'No se pudo enviar. Intenta nuevamente.';
       }
     });
   }
@@ -1120,6 +1167,7 @@
       var immutableProgram = clean(runtimeDataset.programa || data.programa || config.programa || 'Programa General');
       var runtimeModalidad = clean(runtimeDataset.modalidad || data.modalidad || config.modalidad || '');
       var runtimeNivel = clean(runtimeDataset.nivel || data.nivel || config.nivel || '');
+      var eventId = makeEventId('web');
 
       var payload = {
         campaign_name: immutableProgram,
@@ -1149,6 +1197,9 @@
         acepta_politica_datos: clean(data.acepta_politica_datos),
         programa: immutableProgram,
         website: clean(data.website || ''),
+        event_id: eventId,
+        fbc: clean(getCookie('_fbc')),
+        fbp: clean(getCookie('_fbp')),
         utm_source: clean(utm.utm_source),
         utm_medium: clean(utm.utm_medium),
         utm_campaign: clean(utm.utm_campaign),
@@ -1183,6 +1234,11 @@
           body: JSON.stringify(payload)
         };
 
+        var authHeaders = await resolveSubmitAuthHeaders(config);
+        Object.keys(authHeaders).forEach(function (key) {
+          requestOptions.headers[key] = authHeaders[key];
+        });
+
         if (controller) {
           requestOptions.signal = controller.signal;
         }
@@ -1204,8 +1260,7 @@
 
         var crmForwarding = responsePayload && responsePayload.data ? responsePayload.data.crm_forwarding : null;
         if (crmForwarding && crmForwarding.ok === false && crmForwarding.skipped !== true) {
-          var crmMsg = crmForwarding.response && (crmForwarding.response.msg || crmForwarding.response.message);
-          throw new Error('No se pudo enviar al CRM: ' + (crmMsg || crmForwarding.error || 'crm_forward_failed'));
+          // non-blocking CRM warning intentionally ignored in UI/runtime
         }
 
         status.className = 'dm-lead-status ok';
@@ -1223,7 +1278,7 @@
         updateStepAvailability();
       } catch (error) {
         status.className = 'dm-lead-status error';
-        status.textContent = 'No se pudo enviar. Intenta nuevamente.';
+        status.textContent = clean(error && error.message) || 'No se pudo enviar. Intenta nuevamente.';
       }
     });
   }

@@ -660,6 +660,18 @@ async function postDashboardRefresh(req, res, next) {
       200
     );
   } catch (error) {
+    if (error?.statusCode === 502 && error?.details?.platforms) {
+      const metaError = error.details.platforms?.META?.error || '';
+      const googleError = error.details.platforms?.GOOGLE?.error || '';
+      const reasons = [metaError, googleError].filter(Boolean).join(' | ');
+
+      return res.status(502).json({
+        ok: false,
+        error: reasons || 'No se pudo completar el refresh de plataformas',
+        details: error.details
+      });
+    }
+
     return next(error);
   }
 }
