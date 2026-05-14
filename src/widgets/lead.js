@@ -232,8 +232,8 @@
     return '' +
       '<div class="dm-lead-widget">' +
       '  <form id="FORM_WEB" name="FORM_WEB" class="dm-lead-form" novalidate>' +
-    '    <h2>Solicita información</h2>' +
-    '    <p>Déjanos tus datos y te contactaremos con el plan de estudios, costos y próximos inicios.</p>' +
+      '    <h2>Llena el formulario y ACTIVA TU BECA UEES</h2>' +
+      '    <p>Te contactaremos con el plan de estudios, costos y beneficios que recibirás en tu proceso de inscripción.</p>' +
       '    <div class="dm-lead-grid">' +
       '      <div><label>Nombre</label><input name="nombre" required /></div>' +
       '      <div><label>Apellido</label><input name="apellido" required /></div>' +
@@ -261,7 +261,7 @@
       '      <label class="dm-legal-item"><input type="checkbox" name="acepta_politica_datos" value="SI" required /><span class="dm-legal-copy">Acepto la <a href="https://uees.edu.ec/wp-content/uploads/2024/01/politica-de-tratamiento-de-datos-personales.pdf" target="_blank" rel="noopener noreferrer">política de tratamiento de datos personales</a>.</span></label>' +
       '    </div>' +
       '    <input type="text" name="website" style="display:none" tabindex="-1" autocomplete="off" />' +
-        '    <div class="dm-lead-actions"><button type="submit" class="dm-lead-btn">Enviar</button></div>' +
+        '    <div class="dm-lead-actions"><button type="submit" class="dm-lead-btn">Solicita más información</button></div>' +
       '    <div class="dm-lead-status" aria-live="polite"></div>' +
       '  </form>' +
       '</div>';
@@ -270,7 +270,7 @@
   function buildWhatsappForm(config) {
     return '' +
       '<div class="dm-wa-float">' +
-      '  <button type="button" class="dm-wa-open">Chatear con un asesor</button>' +
+      '  <button type="button" class="dm-wa-open"><i class="bi bi-whatsapp" aria-hidden="true"></i> Chatear con un asesor</button>' +
       '  <div class="dm-wa-card">' +
       '    <form id="FORM_WS" name="FORM_WS" class="dm-wa-form" novalidate>' +
       '      <h4>Déjanos tus datos</h4>' +

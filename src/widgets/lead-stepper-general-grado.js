@@ -549,79 +549,39 @@
       '<div class="dm-stepper">' +
       '  <form id="FORM_WEB" name="FORM_WEB" class="dm-stepper-form" novalidate>' +
       '    <div class="dm-form-header"><h2>Solicita más información</h2><p>Nos gustaría conocerte mejor para ofrecerte la mejor experiencia</p></div>' +
-      '    <div class="dm-step-panel active" data-step="1">' +
-      '      <div class="dm-step-head">' +
-      '        <span class="dm-step-number" data-step-indicator="1">1</span>' +
-      '        <div class="dm-step-head-main"><h3 class="dm-step-head-title">Identificación Personal</h3><p class="dm-step-head-sub">Esto nos ayuda a saber desde dónde estudiarás y a validar convenios disponibles en tu región</p></div>' +
-      '        <span class="dm-step-chevron">⌄</span>' +
-      '      </div>' +
-      '      <div class="dm-step-body">' +
-      '        <div class="dm-lead-grid">' +
-      '          <div><label>País</label><select name="pais" required>' + countryOptions + '</select></div>' +
-      '          <div><label>Ciudad</label><input name="ciudad" required /></div>' +
-      '          <div class="full"><label>Número de identificación</label><input name="cedula" inputmode="numeric" pattern="[0-9]+" required /></div>' +
-      '          <div><label>Nombre</label><input name="nombre" required /></div>' +
-      '          <div><label>Apellido</label><input name="apellido" required /></div>' +
-      '        </div>' +
-      '        <div class="dm-country-alert" role="alert"></div>' +
-      '      </div>' +
-      '    </div>' +
-      '    <div class="dm-step-panel" data-step="2">' +
-      '      <div class="dm-step-head">' +
-      '        <span class="dm-step-number" data-step-indicator="2">2</span>' +
-      '        <div class="dm-step-head-main"><h3 class="dm-step-head-title">Tipo de Programa</h3><p class="dm-step-head-sub">Selecciona el mecanismo que mejor se ajusta a tu perfil</p></div>' +
-      '        <span class="dm-step-chevron">⌄</span>' +
-      '      </div>' +
-      '      <div class="dm-step-body">' +
-      '        <div class="dm-lead-grid dm-step-3-grid">' +
-      '          <div class="full"><label>Programa</label><select name="programa" id="dm-programa-general" required><option value="">Cargando programas...</option></select></div>' +
-      '          <div class="full"><label>Mecanismo de ingreso</label><div class="dm-card-grid">' +
-      '            <label class="dm-card-option"><input type="radio" name="mecanismo" value="Carrera Completa" required /><span class="dm-card-body"><strong>Carrera Completa</strong><small>Deseo cursar el programa desde el inicio</small></span></label>' +
-      '            <label class="dm-card-option"><input type="radio" name="mecanismo" value="Homologacion de estudios" required /><span class="dm-card-body"><strong>Homologación</strong><small>Tengo estudios previos similares</small></span></label>' +
-      '            <label class="dm-card-option"><input type="radio" name="mecanismo" value="Validacion de conocimientos / estudios de mas de 10 anos" required /><span class="dm-card-body"><strong>Validación de conocimientos</strong><small>Deseo validar mis conocimientos previos</small></span></label>' +
-      '            <label class="dm-card-option"><input type="radio" name="mecanismo" value="Validacion de ejercicio profesional" required /><span class="dm-card-body"><strong>Validación de trayectoria</strong><small>Tengo experiencia profesional comprobada</small></span></label>' +
-      '          </div></div>' +
-      '        </div>' +
-      '        <input type="hidden" name="codigo_pais" value="+593" />' +
-      '      </div>' +
-      '    </div>' +
-      '    <div class="dm-step-panel" data-step="3">' +
-      '      <div class="dm-step-head">' +
-      '        <span class="dm-step-number" data-step-indicator="3">3</span>' +
-      '        <div class="dm-step-head-main"><h3 class="dm-step-head-title">Información de Contacto</h3><p class="dm-step-head-sub">Un asesor experto se comunicará contigo para resolver todas tus dudas</p></div>' +
-      '        <span class="dm-step-chevron">⌄</span>' +
-      '      </div>' +
-      '      <div class="dm-step-body">' +
-      '        <div class="dm-lead-grid">' +
-      '          <div><label>Correo</label><input name="correo" type="email" required /></div>' +
-      '          <div><label class="dm-phone-label"><span class="dm-phone-label-text">Teléfono</span><span class="dm-phone-prefix" data-phone-prefix><span class="fi fi-ec dm-phone-flag" aria-hidden="true"></span><span>+593</span></span></label><input name="celular" type="tel" placeholder="0999999999" required /></div>' +
-      '          <div class="full"><label>¿Cómo te contactamos?</label><div class="dm-choice-grid">' +
+      '    <div class="dm-country-alert" role="alert"></div>' +
+      '    <div class="dm-lead-grid">' +
+      '      <div><label>País</label><select name="pais" required>' + countryOptions + '</select></div>' +
+      '      <div><label>Ciudad</label><input name="ciudad" required /></div>' +
+      '      <div><label>Número de identificación</label><input name="cedula" inputmode="numeric" pattern="[0-9]+" required /></div>' +
+      '      <div><label>Nombre</label><input name="nombre" required /></div>' +
+      '      <div><label>Apellido</label><input name="apellido" required /></div>' +
+      '      <div><label>Correo</label><input name="correo" type="email" required /></div>' +
+      '      <div><label class="dm-phone-label"><span class="dm-phone-label-text">Teléfono</span><span class="dm-phone-prefix" data-phone-prefix><span class="fi fi-ec dm-phone-flag" aria-hidden="true"></span><span>+593</span></span></label><input name="celular" type="tel" placeholder="0999999999" required /></div>' +
+      '      <div><label>Programa</label><select name="programa" id="dm-programa-general" required><option value="">Cargando programas...</option></select></div>' +
+      '      <div class="full"><label>Mecanismo de ingreso</label><select name="mecanismo" required><option value="">Selecciona</option><option value="Carrera Completa">Carrera Completa</option><option value="Homologacion de estudios">Homologación de estudios</option><option value="Validacion de conocimientos / estudios de mas de 10 anos">Validación de conocimientos / estudios de más de 10 años</option><option value="Validacion de ejercicio profesional">Validación de ejercicio profesional</option></select></div>' +
+      '      <div class="full"><label>¿Cómo te contactamos?</label><div class="dm-choice-grid">' +
       '            <label class="dm-choice-option"><input type="radio" name="como_te_contactamos" value="whatsapp" required /><span class="dm-choice-card"><i class="bi bi-whatsapp dm-choice-icon" aria-hidden="true"></i><span class="dm-choice-text">WhatsApp</span></span></label>' +
       '            <label class="dm-choice-option"><input type="radio" name="como_te_contactamos" value="llamada" required /><span class="dm-choice-card"><svg class="dm-choice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2A19.8 19.8 0 0 1 11.2 19a19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.8 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.4 1.8.7 2.8.8a2 2 0 0 1 1.7 2z"/></svg><span class="dm-choice-text">Llamada</span></span></label>' +
       '            <label class="dm-choice-option"><input type="radio" name="como_te_contactamos" value="correo" required /><span class="dm-choice-card"><svg class="dm-choice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg><span class="dm-choice-text">Correo</span></span></label>' +
-      '          </div></div>' +
-      '          <div class="full"><label>¿En qué franja horaria?</label><div class="dm-choice-grid">' +
+      '      </div></div>' +
+      '      <div class="full"><label>¿En qué franja horaria?</label><div class="dm-choice-grid">' +
       '            <label class="dm-choice-option"><input type="radio" name="franja_horaria" value="manana" required /><span class="dm-choice-card"><svg class="dm-choice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><span class="dm-choice-text">Mañana</span></span></label>' +
       '            <label class="dm-choice-option"><input type="radio" name="franja_horaria" value="tarde" required /><span class="dm-choice-card"><svg class="dm-choice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 20h12"/><path d="M8 16a4 4 0 1 1 8 0"/><path d="M3 16h18"/></svg><span class="dm-choice-text">Tarde</span></span></label>' +
       '            <label class="dm-choice-option"><input type="radio" name="franja_horaria" value="noche" required /><span class="dm-choice-card"><svg class="dm-choice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><span class="dm-choice-text">Noche</span></span></label>' +
-      '          </div></div>' +
-      '        </div>' +
-      '        <div class="dm-lead-legal">' +
+      '      </div></div>' +
+      '    </div>' +
+      '    <div class="dm-lead-legal">' +
       '          <label class="dm-legal-item"><input type="checkbox" name="autorizacion_contacto" value="SI" required /><span>Autorizo recibir información de UEES por medio de llamada telefónica, WhatsApp y SMS, más de una vez a la semana por diferentes canales de contacto, con el fin de continuar con el proceso de inscripción. He leído y aceptado el <a href="https://uees.edu.ec/politica-de-privacidad" target="_blank" rel="noopener noreferrer">aviso de privacidad</a>.</span></label>' +
       '          <label class="dm-legal-item"><input type="checkbox" name="acepta_politica_datos" value="SI" required /><span>Acepto la <a href="https://uees.edu.ec/wp-content/uploads/2024/01/politica-de-tratamiento-de-datos-personales.pdf" target="_blank" rel="noopener noreferrer">política de tratamiento de datos personales</a>.</span></label>' +
-      '        </div>' +
-      '        <input type="hidden" name="modalidad" value="' + escapeAttr(config.modalidad) + '" />' +
-      '        <input type="hidden" name="nivel" value="' + escapeAttr(config.nivel) + '" />' +
-      '        <input type="text" name="website" style="display:none" tabindex="-1" autocomplete="off" />' +
-      '        <div class="dm-step-actions"><span class="dm-spacer"></span></div>' +
-      '      </div>' +
       '    </div>' +
+      '    <input type="hidden" name="codigo_pais" value="+593" />' +
+      '    <input type="hidden" name="modalidad" value="' + escapeAttr(config.modalidad) + '" />' +
+      '    <input type="hidden" name="nivel" value="' + escapeAttr(config.nivel) + '" />' +
+      '    <input type="text" name="website" style="display:none" tabindex="-1" autocomplete="off" />' +
+      '    <div class="dm-step-actions"><button type="submit" class="dm-btn dm-btn-primary dm-btn-block">Enviar</button></div>' +
+      '    <div class="dm-lead-status" aria-live="polite"></div>' +
       '  </form>' +
-      '  <div class="dm-final-submit-wrap" data-final-submit-wrap>' +
-      '    <button type="button" class="dm-btn dm-btn-primary dm-btn-block" data-final-submit>Enviar</button>' +
-      '    <p class="dm-final-submit-hint">Revisa tus datos y confirma el envío.</p>' +
-      '  </div>' +
-      '  <div class="dm-lead-status" aria-live="polite"></div>' +
       '</div>';
   }
 
@@ -925,11 +885,6 @@
 
     var form = root.querySelector('.dm-stepper-form');
     var status = root.querySelector('.dm-lead-status');
-    var stepBlocks = root.querySelectorAll('.dm-step-panel');
-    var stepHeaders = root.querySelectorAll('.dm-step-head');
-    var stepIndicators = root.querySelectorAll('[data-step-indicator]');
-    var finalSubmitWrap = root.querySelector('[data-final-submit-wrap]');
-    var finalSubmitButton = root.querySelector('[data-final-submit]');
     var countrySelect = form.querySelector('select[name="pais"]');
     var phoneInput = form.querySelector('input[name="celular"]');
     var countryCodeInput = form.querySelector('input[name="codigo_pais"]');
@@ -939,106 +894,9 @@
     var idInput = form.querySelector('input[name="cedula"]');
     var countries = getPresenceCountries();
     var idLengthRules = getIdLengthRulesByCountry();
-    var currentStep = 1;
-    var maxUnlockedStep = 1;
-    var isFormReady = false;
 
     if (!form || !status) {
       return;
-    }
-
-    function renderStepState(activeStep) {
-      currentStep = activeStep;
-
-      stepBlocks.forEach(function (block) {
-        var blockStep = Number(block.getAttribute('data-step'));
-        block.classList.remove('active');
-        block.classList.remove('done');
-        if (blockStep === activeStep) {
-          block.classList.add('active');
-          block.classList.remove('dm-pulse');
-        }
-        if (blockStep < maxUnlockedStep) {
-          block.classList.add('done');
-        }
-        if (blockStep === 3 && isFormReady) {
-          block.classList.add('done');
-        }
-      });
-
-      stepIndicators.forEach(function (indicator) {
-        var indicatorStep = Number(indicator.getAttribute('data-step-indicator'));
-        indicator.classList.remove('active');
-        indicator.classList.remove('done');
-        indicator.textContent = String(indicatorStep);
-        if (indicatorStep < maxUnlockedStep) {
-          indicator.classList.add('done');
-          indicator.textContent = '✓';
-        }
-        if (indicatorStep === 3 && isFormReady) {
-          indicator.classList.add('done');
-          indicator.textContent = '✓';
-        }
-        if (indicatorStep === activeStep) {
-          indicator.classList.add('active');
-        }
-      });
-
-      if (finalSubmitWrap) {
-        finalSubmitWrap.classList.toggle('is-visible', isFormReady);
-      }
-    }
-
-    function setStep(stepNumber) {
-      renderStepState(stepNumber);
-    }
-
-    function updateStepAvailability() {
-      var step1Valid = validateStep(1);
-      var step2Valid = step1Valid && validateStep(2);
-      var step3Valid = step2Valid && validateStep(3);
-
-      maxUnlockedStep = 1;
-      if (step1Valid) {
-        maxUnlockedStep = 2;
-      }
-      if (step2Valid) {
-        maxUnlockedStep = 3;
-      }
-      isFormReady = step3Valid;
-
-      var step2 = form.querySelector('.dm-step-panel[data-step="2"]');
-      var step3 = form.querySelector('.dm-step-panel[data-step="3"]');
-      if (step2) {
-        if (maxUnlockedStep === 2 && currentStep !== 2) {
-          step2.classList.add('dm-pulse');
-        } else {
-          step2.classList.remove('dm-pulse');
-        }
-      }
-
-      if (step3) {
-        if (maxUnlockedStep === 3 && currentStep !== 3 && !isFormReady) {
-          step3.classList.add('dm-pulse');
-        } else {
-          step3.classList.remove('dm-pulse');
-        }
-      }
-
-      if (isFormReady && currentStep === 3) {
-        renderStepState(0);
-        return;
-      }
-
-      renderStepState(currentStep);
-    }
-
-    function getStepRequiredElements(stepNumber) {
-      var stepContainer = form.querySelector('.dm-step-panel[data-step="' + stepNumber + '"]');
-      if (!stepContainer) {
-        return [];
-      }
-      return Array.prototype.slice.call(stepContainer.querySelectorAll('input[required], select[required]'));
     }
 
     function validatePhoneCountry() {
@@ -1095,27 +953,6 @@
       return true;
     }
 
-    function validateStep(stepNumber) {
-      var requiredElements = getStepRequiredElements(stepNumber);
-      var isValid = true;
-
-      requiredElements.forEach(function (field) {
-        if (typeof field.checkValidity === 'function' && !field.checkValidity()) {
-          isValid = false;
-        }
-      });
-
-      if (stepNumber === 3 && !validatePhoneCountry()) {
-        isValid = false;
-      }
-
-      if (stepNumber === 1 && !validateIdentificationDocument()) {
-        isValid = false;
-      }
-
-      return isValid;
-    }
-
     function updateCountryUI() {
       var selectedCountry = readSelectedCountry(countrySelect);
       if (!selectedCountry) {
@@ -1151,43 +988,16 @@
       }
     }
 
-    stepHeaders.forEach(function (header) {
-      header.addEventListener('click', function () {
-        var panel = header.closest('.dm-step-panel');
-        if (!panel) {
-          return;
-        }
-
-        var targetStep = Number(panel.getAttribute('data-step'));
-        if (!targetStep || targetStep > maxUnlockedStep) {
-          return;
-        }
-
-        if (targetStep === currentStep && targetStep < maxUnlockedStep) {
-          status.className = 'dm-lead-status';
-          status.textContent = '';
-          setStep(0);
-          return;
-        }
-
-        status.className = 'dm-lead-status';
-        status.textContent = '';
-        setStep(targetStep);
-      });
-    });
-
     if (countrySelect) {
       countrySelect.value = 'EC';
       countrySelect.addEventListener('change', function () {
         updateCountryUI();
-        updateStepAvailability();
       });
     }
 
     if (phoneInput) {
       phoneInput.addEventListener('input', function () {
         validatePhoneCountry();
-        updateStepAvailability();
       });
     }
 
@@ -1198,7 +1008,6 @@
           idInput.value = digits;
         }
         validateIdentificationDocument();
-        updateStepAvailability();
       });
 
       idInput.addEventListener('blur', function () {
@@ -1215,33 +1024,12 @@
       });
     }
 
-    Array.prototype.slice.call(form.querySelectorAll('input, select')).forEach(function (field) {
-      field.addEventListener('change', updateStepAvailability);
-      field.addEventListener('input', updateStepAvailability);
-    });
-
-    if (finalSubmitButton) {
-      finalSubmitButton.addEventListener('click', function () {
-        status.className = 'dm-lead-status';
-        status.textContent = '';
-
-        if (typeof form.requestSubmit === 'function') {
-          form.requestSubmit();
-          return;
-        }
-
-        form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-      });
-    }
-
     updateCountryUI();
-    updateStepAvailability();
 
     loadPrograms(config.programsCsvUrl)
       .then(function (programs) {
         var runtimeDataset = getRuntimeDataset();
         fillProgramSelect(programSelect, programs, clean(runtimeDataset.programa || config.programa));
-        updateStepAvailability();
       })
       .catch(function (error) {
         if (programSelect) {
@@ -1268,7 +1056,6 @@
         }
 
         updateCountryUI();
-        updateStepAvailability();
       })
       .catch(function () {
         // keep local countries fallback
@@ -1280,23 +1067,25 @@
       status.textContent = 'Enviando...';
 
       form.classList.add('dm-show-errors');
-      var step1Valid = validateStep(1);
-      var step2Valid = validateStep(2);
-      var step3Valid = validateStep(3);
-      if (!step1Valid || !step2Valid || !step3Valid) {
+      var requiredElements = Array.prototype.slice.call(form.querySelectorAll('input[required], select[required]'));
+      var isValid = true;
+      requiredElements.forEach(function (field) {
+        if (typeof field.checkValidity === 'function' && !field.checkValidity()) {
+          isValid = false;
+        }
+      });
+
+      if (!validateIdentificationDocument()) {
+        isValid = false;
+      }
+
+      if (!validatePhoneCountry()) {
+        isValid = false;
+      }
+
+      if (!isValid) {
         status.className = 'dm-lead-status error';
         status.textContent = 'Por favor completa todos los campos obligatorios.';
-        isFormReady = false;
-        if (finalSubmitWrap) {
-          finalSubmitWrap.classList.remove('is-visible');
-        }
-        if (!step1Valid) {
-          setStep(1);
-        } else if (!step2Valid) {
-          setStep(2);
-        } else {
-          setStep(3);
-        }
         if (typeof form.reportValidity === 'function') {
           form.reportValidity();
         }
@@ -1417,14 +1206,7 @@
 
         pushTrackingEvent('FORM_WEB_SUBMIT_SUCCESS', payload, 'FORM_WEB');
         form.reset();
-        maxUnlockedStep = 1;
-        isFormReady = false;
-        if (finalSubmitWrap) {
-          finalSubmitWrap.classList.remove('is-visible');
-        }
-        setStep(1);
         updateCountryUI();
-        updateStepAvailability();
       } catch (error) {
         status.className = 'dm-lead-status error';
         status.textContent = clean(error && error.message) || 'No se pudo enviar. Intenta nuevamente.';
